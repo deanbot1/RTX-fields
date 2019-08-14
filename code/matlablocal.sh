@@ -1,6 +1,5 @@
-#CSH
-
+#!/bin/sh
+# This works on MacOS
 set MATLAB_PREFDIR=%cd%/localprefs
 
-matlab
-
+/Applications/MATLAB_R2019a.app/bin/matlab
