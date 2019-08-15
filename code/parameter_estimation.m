@@ -87,7 +87,7 @@ Ne = length(data_filenames); % number of distinct experiments to fit to
 %exptnames = {'exptA','exptC','exptZ'}; % labels for experiments
 for i = 1:Ne
     temp = readtable([data_path data_filenames{i}]);
-	expt(i).name = data_filenames{i}(1:end-4);
+	expt(i).name = strrep(data_filenames{i}(1:end-4),'-','_');
 	expt(i).Ynames = {'Percentage ADCC'}; % these can be different for each experiment but it's good practice to have all of them for all experiments, if possible. The names are matched for parameter estimation, so don't make any spelling variations!
 	expt(i).model = @(pv,R_conc)adcx_wrapper(v2s(pv),R_conc);
     expt(i).time = temp.Var1;
@@ -109,19 +109,17 @@ options = optimset('maxiter',100,'maxfunevals',1000,'Display','iter'); % set the
 pbigbest = fminsearch(ofun,pbig0,options); % run your favorite optimizer
 
 pmat_best = ixf(pfluff(pbigbest,fxf(par.value),prow,pcol,Ne)); % "fluff" optimized parameters into pmat shape and inverse transform values into parameter space
-% convert these into a table for display purposes
+
+
+%% convert these into a table for display purposes
 tmat_best = table('RowNames',par.Properties.RowNames); 
-tmat_true = tmat_best;
+
 for i = 1:Ne
-	tmat_best.(exptnames{i})=pmat_best(:,i);
-	tmat_true.(exptnames{i})=pmat_true(:,i);
+	tmat_best.(expt(i).name)=pmat_best(:,i);
 end
 
 disp('*************** PARAMETER SETTINGS *****************');
 disp(par)
-disp(' ');
-disp('***************** TRUE PARAMETERS ******************') 
-disp(tmat_true);
 disp(' ');
 disp('*************** ESTIMATED PARAMETERS ***************')
 disp(tmat_best)
