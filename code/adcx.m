@@ -1,4 +1,5 @@
-function [T,E,Estar,LDH,perf,CPX] = adcx(tf_mol,tf_et,nr_t_mol,nr_t_et,T0,E0,g,r,kexp,gamma,...
+function [T,E,Estar,LDH,perf,CPX] = adcx(tf_mol,tf_et,nr_t_mol,nr_t_et,T0,E0toT0,Estar0,...
+    g,r,kexp,gamma,...
     CD20,CD16,RTX,kon20,koff20,kon16,koff16,gamma_perf)
 
 close all
@@ -13,9 +14,9 @@ f_rate = reactions(A0,R0,C0,kon20,kon16,koff20,koff16,tf_mol,nr_t_mol);
 
 % Initial condition
 y0(1) = T0;  % T target cell
-y0(2) = E0;  % E effector cell CD16
+y0(2) = E0toT0*T0;  % E effector cell CD16 based on E:T ratio
 y0(3) = 0;   % D dead cell
-NE    = y0(2); % only E, no E* at first
+NE    = y0(2) + Estar0; % only E, no E* at first
 
 pars = [g,r,kexp,NE,gamma,f_rate];
 
