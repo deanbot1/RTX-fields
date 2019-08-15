@@ -6,7 +6,7 @@ nr_t_et,0,8,linear,# of timepoints to return from cellular interaction model
 T0,0,1000,log,initial number of target cells
 E0toT0,0,10,log,effector:target ratio
 Estar0,0,0,log,initial number of depleted effector cells
-g,0,,log,tumor cell growth rate 1/hour
+g,0,0.0277,log,tumor cell growth rate 1/hour
 r,1,,log,number of effector cells need to kill one target cell
 kexp,1,,log,rate of recovery of effector cells from E* --> E 1/hours
 gamma,1,,log,slope relating complex formation to ADCC rate
@@ -14,7 +14,7 @@ CD20,-1,,log,number of CD20 molecules per target cell
 CD16,1,,log,number of CD16 molecules per effector cell
 RTX,0,,log,Rituximab concentration in nM
 kon20,-1,,log,binding on rate of RTX to CD20
-koff20,0,,log,binding off rate of RTX to CD20
+koff20,0,0.0468,log,binding off rate of RTX to CD20
 kon16,-1,,log,binding on rate of RTX to CD16
-koff16,0,,log,binding off rate of RTX to CD16
+koff16,0,16.956,log,binding off rate of RTX to CD16
 gamma_perf,0,1,log,amount of perforin on an Estar cell?
