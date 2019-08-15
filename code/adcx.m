@@ -2,7 +2,6 @@ function [T,E,Estar,LDH,perf,CPX] = adcx(tf_mol,tf_et,nr_t_mol,nr_t_et,T0,E0toT0
     g,r,kexp,gamma,...
     CD20,CD16,RTX,kon20,koff20,kon16,koff16,gamma_perf)
 
-close all
 A0 = CD20;
 C0 = CD16;
 R0 = RTX;
@@ -22,7 +21,7 @@ pars = [g,r,kexp,NE,gamma,f_rate];
 
 %% Simulate the Effector-Target ODEs
 tspan = linspace(0,tf_et,nr_t_et);
-[t,y] = ode45(@et_code_rhs,tspan,y0,[],pars);
+[t,y] = ode23s(@et_code_rhs,tspan,y0,[],pars);
 
 % Store variables
 T = y(:,1);

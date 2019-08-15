@@ -1,9 +1,9 @@
 paramnames,fit ,value,xform,Description
-tf_mol,0,80,linear,hours to run molecular reaction model
-tf_et,0,100,linear,hours to run cellular interaction model
+tf_mol,0,10,linear,hours to run molecular reaction model
+tf_et,0,4,linear,hours to run cellular interaction model
 nr_t_mol,0,8,linear,# of timepoints to return from molecular reaction model
 nr_t_et,0,10,linear,# of timepoints to return from cellular interaction model
-T0,0,10000,log,initial number of target cells
+T0,0,1,log,initial number of target cells
 E0toT0,0,25,log,effector:target ratio
 Estar0,0,0,log,initial number of depleted effector cells
 g,0,0.0277,log,tumor cell growth rate 1/hour

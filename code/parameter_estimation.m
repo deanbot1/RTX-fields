@@ -94,14 +94,10 @@ for i = 1:Ne
 	expt(i).obs = temp.Var2;
 end
 
-%% plot the data and goodness of fit of true parameters...
-% plot_expt figures everything out
-pmat_true = par.value*ones(1,Ne);
-figure; plot_expt(expt,pmat_true,10.^[-4:3]');
 
 %% plot the data and goodness of fit of (uniform) initial guesses for parameters...
 % plot_expt figures everything out
-figure; plot_expt(expt,par.value*ones(1,Ne),10.^[-4:3]');
+figure; plot_expt(expt,par.value*ones(1,Ne),10.^[-4:3]','Xscale','log');
 	
 %% ok now setup parameter estimation problem
 
@@ -109,7 +105,7 @@ errfun = @(Ypred,Yobs)sum(sum((log(Ypred(~isnan(Yobs)))-log(Yobs(~isnan(Yobs))))
 [pbig0,prow,pcol] = psquash(fxf(par.value),par.fit,Ne); % for initial guesses we use value field in the par table
 ofun = @(p)(objfun(p,expt,fxf(par.value),prow,pcol,ixf,errfun)); % single parameter vector objective function in transformed space
 
-options = optimset('maxiter',10000,'maxfunevals',10000); % set the options for your favorite optimizer
+options = optimset('maxiter',100,'maxfunevals',1000,'Display','iter'); % set the options for your favorite optimizer
 pbigbest = fminsearch(ofun,pbig0,options); % run your favorite optimizer
 
 pmat_best = ixf(pfluff(pbigbest,fxf(par.value),prow,pcol,Ne)); % "fluff" optimized parameters into pmat shape and inverse transform values into parameter space
@@ -132,5 +128,5 @@ disp(tmat_best)
 
 %% plot the final results using the best-fit parameters
 % that's it!
-figure; plot_expt(expt,pmat_best,10.^[-4:3]');
+figure; plot_expt(expt,pmat_best,10.^[-4:3]','Xscale','log');
 

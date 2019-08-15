@@ -3,7 +3,7 @@ function f = reactions(A0,R0,C0,kon20,kon16,koff20,koff16,tf,nr_time)
     y0 = [A0,R0,C0,0,0,0];
     
     tspan = linspace(0,tf,nr_time);
-    [T,Y] = ode45(@(t,y) model1(t,y,kon20,kon16,koff20,koff16),tspan,y0);
+    [T,Y] = ode23s(@(t,y) model1(t,y,kon20,kon16,koff20,koff16),tspan,y0);
     
     f = Y(end,6);
 

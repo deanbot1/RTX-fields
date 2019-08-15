@@ -1,4 +1,4 @@
-function plot_expt(expt,pmat,T)
+function plot_expt(expt,pmat,T,varargin)
 % automatically plot experimental data in a nice way
 % INPUTS
 % EXPT is a 1d structure array of experiments with the following required
@@ -49,7 +49,8 @@ for i = 1:Ne
 		else
 			plot(expt(i).time,expt(i).obs(:,j),'ro','MarkerFaceColor','r'); hold on;
 		end
-		title([num2str(i) ':' expt(i).name]);
+		set(gca,varargin{:});
+		title([num2str(i) ':' expt(i).name],'Interpreter','None');
 		ylabel(Yname);
 	end
 	if nargin > 1
