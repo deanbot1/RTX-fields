@@ -12,7 +12,7 @@ kexp,1,1,log,1,0.01,10,rate of recovery of effector cells from E* --> E 1/hours
 gamma,1,1,log,1,0.01,100,slope relating complex formation to ADCC rate
 CD20,-1,114,log,1,1,1000,number of CD20 molecules per target cell
 CD16,1,0.03,log,1,0.0001,1,number of CD16 molecules per effector cell
-RTX,0,53.7496,log,0,,,Rituximab concentration in nM
+RTX,0,53.7496,log,1,0.001,100,Rituximab concentration in nM
 kon20,-1,0.0504,log,1,0.0001,1,binding on rate of RTX to CD20
 koff20,0,0.0468,log,1,0.0001,1,binding off rate of RTX to CD20
 kon16,-1,0.0234,log,1,0.0001,1,binding on rate of RTX to CD16
