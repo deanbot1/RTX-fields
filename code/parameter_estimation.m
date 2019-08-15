@@ -44,7 +44,7 @@ clear all; close all
 % xform = {'log','logit','log','log'}'; % transformations to real line for the parameters. 
 
 %par = table(fit,value,xform,'RowNames',paramnames);
-parameter_filename = 'adcx_parameter_table.csv'
+parameter_filename = 'adcx_parameter_table.csv';
 par = readtable(parameter_filename);
 % but only if we don't allow specification of different
 % initial guesses across experiments because that would lead to an
@@ -90,18 +90,18 @@ for i = 1:Ne
 	expt(i).name = data_filenames{i}(1:end-4);
 	expt(i).Ynames = {'Percentage ADCC'}; % these can be different for each experiment but it's good practice to have all of them for all experiments, if possible. The names are matched for parameter estimation, so don't make any spelling variations!
 	expt(i).model = @(pv,R_conc)adcx_wrapper(v2s(pv),R_conc);
-    expt(i).time = temp(:,1);
-	expt(i).obs = temp(:,2);
+    expt(i).time = temp.Var1;
+	expt(i).obs = temp.Var2;
 end
 
 %% plot the data and goodness of fit of true parameters...
 % plot_expt figures everything out
-pmat_true = par.value*ones(1,Ne)
-figure; plot_expt(expt,pmat_true,[0:300]');
+pmat_true = par.value*ones(1,Ne);
+figure; plot_expt(expt,pmat_true,10.^[-4:3]');
 
 %% plot the data and goodness of fit of (uniform) initial guesses for parameters...
 % plot_expt figures everything out
-figure; plot_expt(expt,par.value*ones(1,Ne),[0:300]');
+figure; plot_expt(expt,par.value*ones(1,Ne),10.^[-4:3]');
 	
 %% ok now setup parameter estimation problem
 
@@ -132,5 +132,5 @@ disp(tmat_best)
 
 %% plot the final results using the best-fit parameters
 % that's it!
-figure; plot_expt(expt,pmat_best,[0:300]');
+figure; plot_expt(expt,pmat_best,10.^[-4:3]');
 
