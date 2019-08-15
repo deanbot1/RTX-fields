@@ -3,17 +3,16 @@
 % Initialize some fake values for your function inputs
 close all; clear all; clc;
 
-% Inport data and 
+% Import data and 
 tableCD20 = csvread('../data/Hiraga_2B1_CD20_BEFORE_RTX.csv');
-rawvaluesCD20 = tableCD20(:,1);
-valuesCD20= rawvaluesCD20./max(rawvaluesCD20); % step to normalize values
+valuesCD20 = tableCD20(:,1);
+% valuesCD20 = rawvaluesCD20./max(rawvaluesCD20); % step to normalize values
 freqCD20 = tableCD20(:,2);
-pdCD20 = freqCD20./sum(freqCD20);
-
+pdCD20   = freqCD20./sum(freqCD20);
+%%
 tableCD16 = csvread('../data/Srpan_2A_CD16_0.csv');
-valuesCD16 = tableCD16(:,3); % normalized values from 0 to 1
-freqCD16 = tableCD16(:,2);
-% remove negative frequencies
+valuesCD16 = tableCD16(:,1); % values x axis
+freqCD16 = tableCD16(:,2);   % remove negative frequencies
 ireal = freqCD16>=0;
 pdCD16 = freqCD16(ireal)./sum(freqCD16(ireal));
 valuesCD16 = valuesCD16(ireal);
@@ -40,16 +39,16 @@ valuesCD16 = valuesCD16(ireal);
 
 %% Set your initial parameters arbitrarily
 % time parameters
-tf_et   = 250;
-nr_t_et = 250;
-tf_mol  = 200;
-nr_t_mol = 1000;
+tf_et   = 100;
+nr_t_et = 100;
+tf_mol  = 80;
+nr_t_mol = 80;
 
 tvec_et  = linspace(0,tf_et,nr_t_et); % simulate 100 hours
 tvec_mol = linspace(0,tf_mol,nr_t_mol); % simulate 100 hours
 
-T0     = 1;     %1e6; 
-E0toT0 = 2;     %0.5e6;
+T0     = 10;     %1e6; 
+E0toT0 = 25;     %0.5e6;
 E0     = E0toT0*T0;
 Estar0 = 1;
 
@@ -80,6 +79,7 @@ figure(1)
 plot(valuesCD20, pdCD20, 'r', 'LineWidth',3)
 set(gca,'FontSize',20,'LineWidth',1.5)
 xlabel('% Max MFI of T cell (\alpha CD20 receptors per T cell)')
+set(gca,'Xscale','log')
 title('Hiraga Fig 2B CD20 Histogram')
 
 figure(2)
@@ -92,6 +92,7 @@ title('Srpan 2018 Fig 2A CD16 Histogram')
 
 %% Sample from your distribution
 
+% Scale CD20 distribution
 nsamps = 100;
 [CD16samps]= randsmpl(pdCD16, nsamps, valuesCD16);
 [CD20samps] = randsmpl(pdCD20, nsamps, valuesCD20);
