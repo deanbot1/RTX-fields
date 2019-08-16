@@ -88,7 +88,7 @@ Ne = length(data_filenames); % number of distinct experiments to fit to
 for i = 1:Ne
     temp = readtable([data_path data_filenames{i}]);
 	expt(i).name = strrep(data_filenames{i}(1:end-4),'-','_');
-	expt(i).Ynames = {'Percentage ADCC'}; % these can be different for each experiment but it's good practice to have all of them for all experiments, if possible. The names are matched for parameter estimation, so don't make any spelling variations!
+	expt(i).Ynames = {'%ADCC'}; % these can be different for each experiment but it's good practice to have all of them for all experiments, if possible. The names are matched for parameter estimation, so don't make any spelling variations!
 	expt(i).model = @(pv,R_conc)adcx_wrapper(v2s(pv),R_conc);
     expt(i).time = temp.Var1;
 	expt(i).obs = temp.Var2;
@@ -98,7 +98,7 @@ end
 
 %% plot the data and goodness of fit of (uniform) initial guesses for parameters...
 % plot_expt figures everything out
-figure; plot_expt(expt,par.value*ones(1,Ne),10.^[-4:3]','Xscale','log');
+figure; plot_expt(expt,par.value*ones(1,Ne),10.^[-4:3]','Xscale','log','Ylim',[0 100],'Xgrid','on','Ygrid','on');
 	
 %% ok now setup parameter estimation problem
 
@@ -106,22 +106,23 @@ errfun = @(Ypred,Yobs)sum(sum((Ypred(~isnan(Yobs))-Yobs(~isnan(Yobs))).^2)); % s
 [pbig0,prow,pcol] = psquash(fxf(par.value),par.fit,Ne); % for initial guesses we use value field in the par table
 ofun = @(p)(objfun(p,expt,fxf(par.value),prow,pcol,ixf,errfun)); % single parameter vector objective function in transformed space
 
-% % seed with monte carlo best guess
-% Nmonte = 100;
-% ofunvals = Inf*ones(1,Nmonte);
-% for j = 1:Nmonte
-% 	p0(:,j) = pbig0 + 4*(rand(size(pbig0))-0.5);
-% 	ofunvals(j) = ofun(p0(:,j));
-% 	disp(ofunvals(j));
-% end
-% 
-% jbest = find(ofunvals==min(ofunvals));
-% pmbest = p0(:,jbest(1));
+% seed with monte carlo best guess
+Nmonte = 100;
+ofunvals = Inf*ones(1,Nmonte);
+for j = 1:Nmonte
+	p0(:,j) = pbig0 + 4*(rand(size(pbig0))-0.5);
+	ofunvals(j) = ofun(p0(:,j));
+	disp(ofunvals(j));
+end
+
+jbest = find(ofunvals==min(ofunvals));
+pmbest = p0(:,jbest(1));
 
 pmbest = pbig0;
 
 %% run fminsearch local optimizer using best guess from monte
-options = optimset('maxiter',1000,'maxfunevals',10000,'Display','iter'); % set the options for your favorite optimizer
+% use at least 1000 maxiter when running a single experiment...
+options = optimset('maxiter',100,'maxfunevals',10000,'Display','iter'); % set the options for your favorite optimizer
 pbigbest = fminsearch(ofun,pmbest,options); % run your favorite optimizer
 
 pmat_best = ixf(pfluff(pbigbest,fxf(par.value),prow,pcol,Ne)); % "fluff" optimized parameters into pmat shape and inverse transform values into parameter space
@@ -142,5 +143,5 @@ disp(tmat_best)
 
 %% plot the final results using the best-fit parameters
 % that's it!
-figure; plot_expt(expt,pmat_best,10.^[-4:3]','Xscale','log');
+figure; plot_expt(expt,pmat_best,10.^[-4:3]','Xscale','log','Ylim',[0 100],'Xgrid','on','Ygrid','on');
 
