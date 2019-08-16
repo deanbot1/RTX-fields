@@ -9,7 +9,7 @@ valuesCD20 = tableCD20(:,1);
 % valuesCD20 = rawvaluesCD20./max(rawvaluesCD20); % step to normalize values
 freqCD20 = tableCD20(:,2);
 pdCD20   = freqCD20./sum(freqCD20);
-%%
+
 tableCD16 = csvread('../data/Srpan_2A_CD16_0.csv');
 valuesCD16 = tableCD16(:,1); % values x axis
 freqCD16 = tableCD16(:,2);   % remove negative frequencies
@@ -17,6 +17,23 @@ ireal = freqCD16>=0;
 pdCD16 = freqCD16(ireal)./sum(freqCD16(ireal));
 valuesCD16 = valuesCD16(ireal);
 
+%%
+
+figure;
+plot(valuesCD20, pdCD20,'r-', 'LineWidth', 3)
+set(gca,'FontSize',16, 'Xscale', 'log')
+xlabel('number of CD20 receptors per tumor cell')
+ylabel('pdf')
+title('CD20 initial distribution on tumor cells')
+
+
+figure;
+plot(valuesCD16, pdCD16,'b-', 'LineWidth', 3)
+set(gca,'FontSize',16, 'Xscale', 'log')
+xlabel('number of CD16 receptors per NK cell')
+ylabel('pdf')
+xlim([5e2 10e3])
+title('CD16 initial distribution on NK cells')
 
 
 
@@ -40,15 +57,15 @@ valuesCD16 = valuesCD16(ireal);
 %% Set your initial parameters arbitrarily
 % time parameters
 tf_et   = 100;
-nr_t_et = 100;
+nr_t_et = 500;
 tf_mol  = 80;
 nr_t_mol = 80;
 
 tvec_et  = linspace(0,tf_et,nr_t_et); % simulate 100 hours
 tvec_mol = linspace(0,tf_mol,nr_t_mol); % simulate 100 hours
 
-T0     = 10;     %1e6; 
-E0toT0 = 25;     %0.5e6;
+T0     = 1;     %1e6; 
+E0toT0 = 2;     %0.5e6;
 E0     = E0toT0*T0;
 Estar0 = 1;
 
@@ -93,9 +110,13 @@ title('Srpan 2018 Fig 2A CD16 Histogram')
 %% Sample from your distribution
 
 % Scale CD20 distribution
-nsamps = 100;
+nsamps = 10000;
 [CD16samps]= randsmpl(pdCD16, nsamps, valuesCD16);
 [CD20samps] = randsmpl(pdCD20, nsamps, valuesCD20);
+% test the histcounts function using the values form the data
+
+NCD160 = histcounts(CD16samps, valuesCD16);
+NCD200 = histcounts(CD20samps, valuesCD20);
 % % Tabulate the randomly drawn samples
 % CD16samptbl = tabulate(CD16samps);
 % CD16sampvals = CD16samptbl(:,1);
@@ -108,29 +129,31 @@ nsamps = 100;
 % CD20samppdf = CD20samptbl(:,3)/100;
 
 
-% %% Check that your sampled distributions match your simulated data
-% 
-% figure(3)
-% plot(CD16sampvals, CD16samppdf, 'c', 'LineWidth',3)
-% hold on
-% plot(valuesCD16, pdCD16, 'b','LineWidth',3)
-% set(gca,'FontSize',20,'LineWidth',1.5)
-% legend('Normalized sampled data', 'Srpan 2018 Fig 2A data pdf')
-% legend boxoff
-% xlabel('% Max MFI of E cell (\alpha CD16 receptors per E cell)')
-% ylabel('Frequency (pdf)')
-% title('Sample from literature CD16 histogram')
-% %%
-% figure(4)
-% plot(CD20sampvals, CD20samppdf, 'm', 'LineWidth', 3)
-% hold on
-% plot(valuesCD20, pdCD20, 'r','LineWidth',3)
-% legend('Normalized sampled data', 'Hiraga Fig 2B data pdf')
-% legend boxoff
-% set(gca,'FontSize',20,'LineWidth',1.5)
-% xlabel('% Max MFI of T cell (\alpha CD20 receptors per T cell)')
-% ylabel('Number of T cells')
-% title('Sample from literature CD20 histogram')
+%% Check that your sampled distributions match your simulated data
+
+figure;
+hold off
+plot(valuesCD16(1:end-1), (NCD160./sum(NCD160)), 'c', 'LineWidth',3)
+hold on
+plot(valuesCD16, pdCD16, 'b','LineWidth',3)
+set(gca,'FontSize',20,'LineWidth',1.5)
+legend('Normalized sampled data', 'Srpan 2018 Fig 2A data pdf')
+legend boxoff
+xlabel('% Max MFI of E cell (\alpha CD16 receptors per E cell)')
+ylabel('Frequency (pdf)')
+title('Sample from literature CD16 histogram')
+%%
+figure;
+hold off
+plot(valuesCD20(1:end-1),(NCD200./sum(NCD200)), 'm', 'LineWidth', 3)
+hold on
+plot(valuesCD20, pdCD20, 'r','LineWidth',3)
+legend('Normalized sampled data', 'Hiraga Fig 2B data pdf')
+legend boxoff
+set(gca,'FontSize',20,'LineWidth',1.5, 'Xscale', 'log')
+xlabel('% Max MFI of T cell (\alpha CD20 receptors per T cell)')
+ylabel('Number of T cells')
+title('Sample from literature CD20 histogram')
 
 %% Run the loop that iterates through the CD16 and CD20 samples and runs
 % the forward adcx and reaction_ss model
@@ -140,7 +163,8 @@ Emat       = zeros(nr_t_et,nsamps);
 LDHmat     = zeros(nr_t_et,nsamps);
 perfmat    = zeros(nr_t_et,nsamps);
 delCD16    = zeros(nsamps,1);
-
+gamma = max(CD20samps)*1000;
+lambda = max(CD16samps)*1e4;
 for i = 1:nsamps
     i
 %     [T,E,Estar,LDH,perf,CPX] = adcx(tf_mol,tf_et,nr_t_mol,nr_t_et,T0,E0,g,r,kexp,gamma,...
@@ -149,7 +173,7 @@ for i = 1:nsamps
     % which calles the reaction_ss function
     [Ti, Ei, Estari, LDHi, perfi, CPXi] = adcx(tf_mol,tf_et,nr_t_mol,nr_t_et,...
         T0,E0toT0,Estar0,g,r,kexp,gamma,...
-        CD20samps(i),CD16samps(i),RTX,kon20,koff20,kon16,koff16,gamma_perf);
+        (CD20samps(i)/gamma),(CD16samps(i)/lambda),RTX,kon20,koff20,kon16,koff16,gamma_perf);
     i
     Tmat(:,i)     = Ti;
     Emat(:,i)     = Ei;
@@ -166,21 +190,31 @@ perfvec = sum(perfmat,2);
 
 %% Plotting
 figure(5)
+hold off
 plot(sum(Tmat,2),'LineWidth',2)
 hold on
 plot(sum(Emat,2),'LineWidth',2)
 plot(LDHvec,'LineWidth',2)
-xlabel('Time')
+xlabel('Time (hours)')
+xlim([1 100])
+ylabel('Number of cells/molecules')
+title('Short term dynamics')
 legend('Target cells','Effector cells (CD16)','LDH')
+legend boxoff
 set(gca,'FontSize',16)
 
 figure(6)
+hold off
 plot(sum(Tmat,2),'LineWidth',2)
 hold on
 plot(sum(Emat,2),'LineWidth',2)
 plot(LDHvec,'LineWidth',2)
-xlabel('Time')
+xlabel('Time (hours)')
+ylabel('Number of cells/molecules')
+title('Long Range Dynamics')
 legend('Target cells','Effector cells (CD16)','LDH')
+legend boxoff
 set(gca,'FontSize',16)
-
+Tvec = sum(Tmat,2)
+i120 = find(Tvec>1.2*Tvec(1),1, 'first')
 
