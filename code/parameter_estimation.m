@@ -94,6 +94,7 @@ for i = 1:Ne
 	expt(i).obs = temp.Var2;
 end
 
+%expt = expt(2);
 
 %% plot the data and goodness of fit of (uniform) initial guesses for parameters...
 % plot_expt figures everything out
@@ -101,12 +102,27 @@ figure; plot_expt(expt,par.value*ones(1,Ne),10.^[-4:3]','Xscale','log');
 	
 %% ok now setup parameter estimation problem
 
-errfun = @(Ypred,Yobs)sum(sum((log(Ypred(~isnan(Yobs)))-log(Yobs(~isnan(Yobs)))).^2)); % sum squared error function ignoring NaNs
+errfun = @(Ypred,Yobs)sum(sum((Ypred(~isnan(Yobs))-Yobs(~isnan(Yobs))).^2)); % sum squared error function ignoring NaNs
 [pbig0,prow,pcol] = psquash(fxf(par.value),par.fit,Ne); % for initial guesses we use value field in the par table
 ofun = @(p)(objfun(p,expt,fxf(par.value),prow,pcol,ixf,errfun)); % single parameter vector objective function in transformed space
 
-options = optimset('maxiter',100,'maxfunevals',1000,'Display','iter'); % set the options for your favorite optimizer
-pbigbest = fminsearch(ofun,pbig0,options); % run your favorite optimizer
+% % seed with monte carlo best guess
+% Nmonte = 100;
+% ofunvals = Inf*ones(1,Nmonte);
+% for j = 1:Nmonte
+% 	p0(:,j) = pbig0 + 4*(rand(size(pbig0))-0.5);
+% 	ofunvals(j) = ofun(p0(:,j));
+% 	disp(ofunvals(j));
+% end
+% 
+% jbest = find(ofunvals==min(ofunvals));
+% pmbest = p0(:,jbest(1));
+
+pmbest = pbig0;
+
+%% run fminsearch local optimizer using best guess from monte
+options = optimset('maxiter',1000,'maxfunevals',10000,'Display','iter'); % set the options for your favorite optimizer
+pbigbest = fminsearch(ofun,pmbest,options); % run your favorite optimizer
 
 pmat_best = ixf(pfluff(pbigbest,fxf(par.value),prow,pcol,Ne)); % "fluff" optimized parameters into pmat shape and inverse transform values into parameter space
 
@@ -114,7 +130,7 @@ pmat_best = ixf(pfluff(pbigbest,fxf(par.value),prow,pcol,Ne)); % "fluff" optimiz
 %% convert these into a table for display purposes
 tmat_best = table('RowNames',par.Properties.RowNames); 
 
-for i = 1:Ne
+for i = 1:length(expt)
 	tmat_best.(expt(i).name)=pmat_best(:,i);
 end
 
