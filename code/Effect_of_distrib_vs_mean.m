@@ -65,5 +65,58 @@ title('Long Range Dynamics using mean receptor levels')
 legend('Target cells','Effector cells (CD16)','LDH')
 legend boxoff
 set(gca,'FontSize',16)
+%% Plot individual tumor trajectories for CD20-
+
+
+figure;
+for i = 1:100
+    if CD20samps(i)>median(CD20samps)
+    plot(Tmat(:,i), 'r', 'LineWidth', 1)
+    end
+    if CD20samps(i)<median(CD20samps)
+    plot(Tmat(:,i), 'b', 'LineWidth', 1)
+    end
+    hold on
+    legend('CD20- on tumor cell', 'CD20+ on tumor cell')
+    xlabel('Time(hours)')
+    ylabel('Relative number of tumor cells')
+    title('Observed variability in tumor cell trajectories')
+    set(gca,'FontSize',16)
+    ylim([0 14])
+end
+%%
+figure;
+for i = 2:101
+    if CD16samps(i)>median(CD16samps) 
+    plot(Tmat(:,i), 'g', 'LineWidth', 1)
+    end
+    if CD16samps(i)<median(CD16samps)
+    plot(Tmat(:,i), 'y', 'LineWidth', 1)
+    end
+    hold on
+    legend('CD16 + on NK Cell', 'CD16 - on NK cell')
+    xlabel('Time(hours)')
+    ylabel('Relative number of tumor cells')
+    title('Observed variability in tumor cell trajectories')
+    set(gca,'FontSize',16)
+    ylim([0 14])
+end
+%%
+figure;
+for i = 95:195
+    if CD16samps(i)>median(CD16samps) && CD20samps(i)< median(CD20samps)
+        i
+    plot(Tmat(:,i), 'r', 'LineWidth', 1.5)
+    else
+    plot(Tmat(:,i), 'k', 'LineWidth', 1)
+    end
+    hold on
+    legend( 'CD16 + on NK cell, CD20- on tumor', 'others')
+    xlabel('Time(hours)')
+    ylabel('Relative number of tumor cells')
+    title('Observed variability in tumor cell trajectories')
+    set(gca,'FontSize',16)
+    ylim([0 14])
+end
 
 
