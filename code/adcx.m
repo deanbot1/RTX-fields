@@ -7,7 +7,8 @@ C0 = CD16;
 R0 = RTX;
 
 % Run molecular rate equations to steady state
-f_rate = reactions(A0,R0,C0,kon20,kon16,koff20,koff16,tf_mol,nr_t_mol);
+%f_rate = reactions(A0,R0,C0,kon20,kon16,koff20,koff16,tf_mol,nr_t_mol);
+f_rate = SSadcc(RTX,true,CD16,CD20,kon16,koff16,kon20,koff20);
 
 %% Effector-target code
 

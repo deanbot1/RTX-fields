@@ -1,4 +1,5 @@
-%% glocal_demo.m demonstrates how to use functions in this directory
+%% parameter_estimation.m estimates ADCC parameters...
+% glocal_demo.m demonstrates how to use functions in this directory
 % This function set overloads the terms "global" and "local" parameter
 % estimation in nonstandard ways. "global" in the current case refers to a
 % parameter value that is expected to be consistent across the individual
@@ -94,11 +95,12 @@ for i = 1:Ne
 	expt(i).obs = temp.Var2;
 end
 
-%expt = expt(2);
+expt = expt(2);
 
 %% plot the data and goodness of fit of (uniform) initial guesses for parameters...
 % plot_expt figures everything out
-figure; plot_expt(expt,par.value*ones(1,Ne),10.^[-4:3]','Xscale','log','Ylim',[0 100],'Xgrid','on','Ygrid','on');
+figure; plot_expt(expt,par.value*ones(1,Ne),10.^[-2:.5:4]','Xscale','log','Ylim',[0 100],'Xgrid','on','Ygrid','on');
+%figure; plot_expt(expt,5*ones(height(par),Ne),10.^[-2:.5:4]','Xscale','log','Ylim',[0 100],'Xgrid','on','Ygrid','on');
 	
 %% ok now setup parameter estimation problem
 
