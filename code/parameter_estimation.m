@@ -71,14 +71,14 @@ for i = 1:Ne
 	expt(i).obs = temp.Var2;
 end
 
-expt = expt(2);  % only use one of the experiments!  comment this if you want to use all of them!
+%expt = expt(2);  % only use one of the experiments!  comment this if you want to use all of them!
 
 % plot the data and goodness of fit of (uniform) initial guesses for parameters...
 % plot_expt figures everything out
 par.guess = par.value;
 % par{'kon20','guess'} = par{'kon20','value'}/1000;
 % par{'gamma','guess'} = par{'gamma','value'}*5;
-figure; plot_expt(expt,par.guess*ones(1,Ne),10.^[0:0.5:4]','Xscale','log','Ylim',[0 100],'Xgrid','on','Ygrid','on');
+figure; plot_expt(expt,par.guess*ones(1,Ne),10.^[-2:0.5:6]','Xscale','log','Ylim',[0 100],'Xgrid','on','Ygrid','on');
 %figure; plot_expt(expt,5*ones(height(par),Ne),10.^[-2:.5:4]','Xscale','log','Ylim',[0 100],'Xgrid','on','Ygrid','on');
 	
 %% ok now setup parameter estimation problem
@@ -121,8 +121,9 @@ disp(par)
 disp(' ');
 disp('*************** ESTIMATED PARAMETERS ***************')
 disp(tmat_best)
+%% 
 
 %% plot the final results using the best-fit parameters
 % that's it!
 figure; plot_expt(expt,pmat_best,10.^[-2:1:4]','Xscale','log','Ylim',[0 100],'Xgrid','on','Ygrid','on');
-
+save pmat_best
