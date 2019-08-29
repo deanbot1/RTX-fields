@@ -32,37 +32,18 @@
 
 %% clear the workspace and close all figure windows
 clear all; close all
-
-%% initialize parameter settings
-% if you want to be fancy you can put this info in a spreadsheet, then just 
-% use xlsread to convert to a table like I'm making here. Make sure
-% parameter names are rownames for the table. 
-
-
-% paramnames = {'Y0';'phiR';'gR';'kS'}; % names of parameters as they are known to the models
-% fit = [-1 -1 1 1]'; % whether to fit each parameter 'locally' (-1) to each experiment, or 'globally' (1) one value across all experiments, or not at all (0)
-% value = [10 0.1 0.009 0.002]'; % default values for the parameters
-% xform = {'log','logit','log','log'}'; % transformations to real line for the parameters. 
-
-%par = table(fit,value,xform,'RowNames',paramnames);
 parameter_filename = 'adcx_parameter_table.csv';
 par = readtable(parameter_filename);
-% but only if we don't allow specification of different
-% initial guesses across experiments because that would lead to an
-% inconsistently shaped thing
-
-%clear paramnames fit value xform % we will use par table hereafter
-
 disp(par);
 
-%% generate some anonymous functions we need later
+% generate some anonymous functions we need later
 % don't touch this block
 par.Properties.RowNames = par.paramnames;
 v2s = @(vec)vect2struct(vec,par.Properties.RowNames); % local function converting parameter vector to parameter structure
 fxf = @(mat)fxform(mat,par.xform); % forward transform from parameter space to real numbers 
 ixf = @(mat)ixform(mat,par.xform); % inverse transform from real line to parameter space
 
-%% specify the model. 
+% specify the model. 
 % a model is defined as a function taking in parameter and dependent
 % variable values (say a time vector) and spitting out Y values for each
 % dependent variable value. The model can either be an anonymous function
@@ -72,12 +53,7 @@ ixf = @(mat)ixform(mat,par.xform); % inverse transform from real line to paramet
 % order of the parameters, you can do it that way too in which case you
 % don't need the v2s function above. 
 
-%adcx(tf_mol,tf_et,nr_t_mol,nr_t_et,T0,E0,g,r,kexp,gamma,
-% ...CD20,CD16,RTX,kon20,koff20,kon16,koff16,gamma_perf)
-%tukmodel = @(p,T)(p.Y0*((1-p.phiR)*exp(-p.kS*T) + p.phiR*exp(p.gR*T))); % model for tumor volume
-%rsratio = @(p,T)(p.phiR/(1-p.phiR))*exp((p.gR+p.kS)*T); % model for resistant to sensitive cell ratio
-
-%% now we generate the experiment structure
+% now we generate the experiment structure
 % which in real life would be done by loading in experimental observations,
 % not using the model to simulate the data, but this is a demo
 data_path = '../data/';
@@ -95,11 +71,14 @@ for i = 1:Ne
 	expt(i).obs = temp.Var2;
 end
 
-expt = expt(2);
+expt = expt(2);  % only use one of the experiments!  comment this if you want to use all of them!
 
-%% plot the data and goodness of fit of (uniform) initial guesses for parameters...
+% plot the data and goodness of fit of (uniform) initial guesses for parameters...
 % plot_expt figures everything out
-figure; plot_expt(expt,par.value*ones(1,Ne),10.^[-2:.5:4]','Xscale','log','Ylim',[0 100],'Xgrid','on','Ygrid','on');
+par.guess = par.value;
+% par{'kon20','guess'} = par{'kon20','value'}/1000;
+% par{'gamma','guess'} = par{'gamma','value'}*5;
+figure; plot_expt(expt,par.guess*ones(1,Ne),10.^[0:0.5:4]','Xscale','log','Ylim',[0 100],'Xgrid','on','Ygrid','on');
 %figure; plot_expt(expt,5*ones(height(par),Ne),10.^[-2:.5:4]','Xscale','log','Ylim',[0 100],'Xgrid','on','Ygrid','on');
 	
 %% ok now setup parameter estimation problem
@@ -109,20 +88,20 @@ errfun = @(Ypred,Yobs)sum(sum((Ypred(~isnan(Yobs))-Yobs(~isnan(Yobs))).^2)); % s
 ofun = @(p)(objfun(p,expt,fxf(par.value),prow,pcol,ixf,errfun)); % single parameter vector objective function in transformed space
 
 % seed with monte carlo best guess
-Nmonte = 100;
-ofunvals = Inf*ones(1,Nmonte);
-for j = 1:Nmonte
-	p0(:,j) = pbig0 + 4*(rand(size(pbig0))-0.5);
-	ofunvals(j) = ofun(p0(:,j));
-	disp(ofunvals(j));
-end
-
-jbest = find(ofunvals==min(ofunvals));
-pmbest = p0(:,jbest(1));
+% Nmonte = 100;
+% ofunvals = Inf*ones(1,Nmonte);
+% for j = 1:Nmonte
+% 	p0(:,j) = pbig0 + 4*(rand(size(pbig0))-0.5);
+% 	ofunvals(j) = ofun(p0(:,j));
+% 	disp(ofunvals(j));
+% end
+% 
+% jbest = find(ofunvals==min(ofunvals));
+% pmbest = p0(:,jbest(1));
 
 pmbest = pbig0;
 
-%% run fminsearch local optimizer using best guess from monte
+% run fminsearch local optimizer using best guess from monte
 % use at least 1000 maxiter when running a single experiment...
 options = optimset('maxiter',100,'maxfunevals',10000,'Display','iter'); % set the options for your favorite optimizer
 pbigbest = fminsearch(ofun,pmbest,options); % run your favorite optimizer
@@ -145,5 +124,5 @@ disp(tmat_best)
 
 %% plot the final results using the best-fit parameters
 % that's it!
-figure; plot_expt(expt,pmat_best,10.^[-4:3]','Xscale','log','Ylim',[0 100],'Xgrid','on','Ygrid','on');
+figure; plot_expt(expt,pmat_best,10.^[-2:1:4]','Xscale','log','Ylim',[0 100],'Xgrid','on','Ygrid','on');
 
