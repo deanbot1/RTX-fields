@@ -12,7 +12,7 @@ dFRAdt = kon_FR*F*RA + kon_RA*FR*A - (koff_FR+koff_RA)*FRA;
 
 eqns = [dAdt == 0, dFdt == 0, dRAdt == 0, dFRdt == 0, dFRAdt == 0,...
 	Ftot == F + FR + FRA, Atot == A + RA + FRA];
-vars = [FRA];
+vars = [FRA,F,FR,A,RA];
 
 S = solve(eqns,vars,'real',true,'IgnoreAnalyticConstraints',true,'ReturnConditions',true);
 save('reactionss.mat');
