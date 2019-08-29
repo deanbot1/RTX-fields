@@ -78,7 +78,10 @@ end
 par.guess = par.value;
 % par{'kon20','guess'} = par{'kon20','value'}/1000;
 % par{'gamma','guess'} = par{'gamma','value'}*5;
-figure; plot_expt(expt,par.guess*ones(1,Ne),10.^[-2:0.5:6]','Xscale','log','Ylim',[0 100],'Xgrid','on','Ygrid','on');
+%figure; plot_expt(expt,par.guess*ones(1,Ne),10.^[-2:0.5:6]','Xscale','log','Ylim',[0 100],'Xgrid','on','Ygrid','on');
+figure('Position',[239   558   990   420]);
+plot_expt(expt,par.guess*ones(1,Ne),10.^[-2:0.25:6]','Xscale','log','Ylim',[0 100],'Xgrid','off','Ygrid','on','Xtick',10.^[-2:2:6]);
+
 %figure; plot_expt(expt,5*ones(height(par),Ne),10.^[-2:.5:4]','Xscale','log','Ylim',[0 100],'Xgrid','on','Ygrid','on');
 	
 %% ok now setup parameter estimation problem
@@ -103,8 +106,9 @@ pmbest = pbig0;
 
 % run fminsearch local optimizer using best guess from monte
 % use at least 1000 maxiter when running a single experiment...
-options = optimset('maxiter',100,'maxfunevals',10000,'Display','iter'); % set the options for your favorite optimizer
+options = optimset('maxiter',2500,'maxfunevals',10000,'Display','iter'); % set the options for your favorite optimizer
 pbigbest = fminsearch(ofun,pmbest,options); % run your favorite optimizer
+%pbigbest = fminsearch(ofun,pbigbest,options); % run your favorite optimizer again...
 
 pmat_best = ixf(pfluff(pbigbest,fxf(par.value),prow,pcol,Ne)); % "fluff" optimized parameters into pmat shape and inverse transform values into parameter space
 
@@ -125,5 +129,6 @@ disp(tmat_best)
 
 %% plot the final results using the best-fit parameters
 % that's it!
-figure; plot_expt(expt,pmat_best,10.^[-2:1:4]','Xscale','log','Ylim',[0 100],'Xgrid','on','Ygrid','on');
+figure('Position',[239   558   990   420]);
+plot_expt(expt,pmat_best,10.^[-2:0.25:6]','Xscale','log','Ylim',[0 100],'Xgrid','off','Ygrid','on','Xtick',10.^[-2:2:6]);
 save pmat_best
