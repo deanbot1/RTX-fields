@@ -106,6 +106,7 @@ pvec0 = pstruct2vec(pinit,pxform);
 options = optimset('maxiter',2500,'maxfunevals',10000,'Display','iter'); % set the options for your favorite optimizer
 pbigbest = fminsearch(ofun,pvec0,options); % run your favorite optimizer
 %pbigbest = fminsearch(ofun,pbigbest,options); % run your favorite optimizer again...
+% save pbest
 % load pbest.mat (if you want to skip parameter estimation)
 pbest = pvec2struct(pbigbest,pxform)
 
