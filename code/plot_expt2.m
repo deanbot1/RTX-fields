@@ -14,6 +14,7 @@ for j = 1:Ne
 	plot(xspan,Ypred,'b.-'); 
 	set(gca,varargin{:});
 	title(expt(j).name,'Interpreter','none');
+	xlabel(expt(j).Xname);
 	grid on
 	if j==1
 		ylabel(expt(j).Ynames);

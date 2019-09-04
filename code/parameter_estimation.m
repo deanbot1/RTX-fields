@@ -52,6 +52,7 @@ for i = 1:Ne
 	iscore = strfind(expt(i).name,'_'); iscore = iscore(2);
 	expt(i).name = {expt(i).name(1:iscore-1),expt(i).name(iscore+1:end)};
 	expt(i).Ynames = {'%ADCC'}; % these can be different for each experiment but it's good practice to have all of them for all experiments, if possible. The names are matched for parameter estimation, so don't make any spelling variations!
+	expt(i).Xname = '[RTX]';
 	expt(i).model = @(pstruct,R_conc)adcx_wrapper(pstruct,R_conc);
     expt(i).xval = temp.Var1;
 	expt(i).obs = temp.Var2;
@@ -125,3 +126,5 @@ for j = 1:length(fnames)
 	par{fnames{j},'bestest'} = pbest.(fnames{j});
 end
 disp(par);
+
+writetable(par,'parameter_estimation_results.csv')
