@@ -1,21 +1,5 @@
 %% parameter_estimation.m estimates ADCC parameters...
-% glocal_demo.m demonstrates how to use functions in this directory
-% This function set overloads the terms "global" and "local" parameter
-% estimation in nonstandard ways. "global" in the current case refers to a
-% parameter value that is expected to be consistent across the individual
-% experiments that are being fit simultaneously (similar in spirit to a
-% fixed effect across patients, but across experiments), while "local"
-% parameter takes on a different value for each experiment (if you are
-% familiar with nonlinear mixed effects, this is like a random effect, but
-% without any distributional assumptions).
-% 
-% This functionality comes in handy when some experimental conditions may
-% effect a "local" parameter in unpredictable/unmeasured ways that need to be taken into
-% account, for example with in vitro experiments that come from different
-% batches/passages of a cell line, which could affect receptor density, for
-% example, whereas other "global" parameters should be universal across all
-% experiments.
-%
+% rewriting this...
 % Additionally this toolbox allows user to specify a transformation for
 % each parameter: 
 % 
@@ -36,13 +20,11 @@ parameter_filename = 'adcx_parameter_table.csv';
 par = readtable(parameter_filename);
 disp(par);
 
-% generate some anonymous functions we need later
-% don't touch this block
-par.Properties.RowNames = par.paramnames;
-v2s = @(vec)vect2struct(vec,par.Properties.RowNames); % local function converting parameter vector to parameter structure
-fxf = @(mat)fxform(mat,par.xform); % forward transform from parameter space to real numbers 
-ixf = @(mat)ixform(mat,par.xform); % inverse transform from real line to parameter space
+defpmap = default_pmap(par);
 
+
+
+%% boh
 % specify the model. 
 % a model is defined as a function taking in parameter and dependent
 % variable values (say a time vector) and spitting out Y values for each
@@ -62,73 +44,83 @@ data_filenames = {'Herter_4A_V158onZ138.csv','Herter_4B_V158onSU-DHL4.csv'...
     'Herter_4E_V158onZ138_High_Concentration.csv'};
 Ne = length(data_filenames); % number of distinct experiments to fit to
 %exptnames = {'exptA','exptC','exptZ'}; % labels for experiments
+clear pdef
+pj = 0; % p vector index thingy
 for i = 1:Ne
     temp = readtable([data_path data_filenames{i}]);
 	expt(i).name = strrep(data_filenames{i}(1:end-4),'-','_');
+	iscore = strfind(expt(i).name,'_'); iscore = iscore(2);
+	expt(i).name = {expt(i).name(1:iscore-1),expt(i).name(iscore+1:end)};
 	expt(i).Ynames = {'%ADCC'}; % these can be different for each experiment but it's good practice to have all of them for all experiments, if possible. The names are matched for parameter estimation, so don't make any spelling variations!
-	expt(i).model = @(pv,R_conc)adcx_wrapper(v2s(pv),R_conc);
-    expt(i).time = temp.Var1;
+	expt(i).model = @(pstruct,R_conc)adcx_wrapper(pstruct,R_conc);
+    expt(i).xval = temp.Var1;
 	expt(i).obs = temp.Var2;
+	expt(i).pmap = defpmap;
+	
+	% this is where the magic happens == mapping of nonunique parameters to
+	% parameters
+	ion = strfind(expt(i).name{2},'on'); ion = ion(1); % first occurence
+	switch expt(i).name{2}(ion+2:ion+3)
+		case 'Z1'
+			cellline = 'Z138';
+		case 'SU'
+			cellline = 'SUDHL4';
+	end
+	gname = ['g_' cellline];
+	expt(i).pmap.g = @(pfit)pfit.(gname);
+	cd20name = ['CD20_' cellline];
+	expt(i).pmap.CD20 = @(pfit)pfit.(cd20name);
+	CD16SNP = expt(i).name{2}(ion-4:ion-1);
+	CD16name = ['kon16_' CD16SNP];
+	expt(i).pmap.kon16 = @(pfit)pfit.(CD16name);
+	CD16name = ['CD16_' CD16SNP];
+	expt(i).pmap.CD16 = @(pfit)pfit.(CD16name);
 end
 
-%expt = expt(2);  % only use one of the experiments!  comment this if you want to use all of them!
+% now we loop through the expt structure and build our pfit vector
+% structure mapping
 
-% plot the data and goodness of fit of (uniform) initial guesses for parameters...
-% plot_expt figures everything out
-par.guess = par.value;
-% par{'kon20','guess'} = par{'kon20','value'}/1000;
-% par{'gamma','guess'} = par{'gamma','value'}*5;
-%figure; plot_expt(expt,par.guess*ones(1,Ne),10.^[-2:0.5:6]','Xscale','log','Ylim',[0 100],'Xgrid','on','Ygrid','on');
+k = 0;
+for j = 1:height(par)
+	if par.fit(j) ~= 0
+		k = k+1;
+		pinit.(par.paramnames{j}) = par.value(j);
+		pxform.(par.paramnames{j}) = par.xform{j};
+	end
+end
+
 figure('Position',[239   558   990   420]);
-plot_expt(expt,par.guess*ones(1,Ne),10.^[-2:0.25:6]','Xscale','log','Ylim',[0 100],'Xgrid','off','Ygrid','on','Xtick',10.^[-2:2:6]);
+xspan = 10.^[-2:0.25:6]';
+plot_expt2(expt,pinit,xspan,'Xscale','log','Ylim',[-10 100],'Xtick',10.^[-2:2:6]);
 
-%figure; plot_expt(expt,5*ones(height(par),Ne),10.^[-2:.5:4]','Xscale','log','Ylim',[0 100],'Xgrid','on','Ygrid','on');
 	
 %% ok now setup parameter estimation problem
 
 errfun = @(Ypred,Yobs)sum(sum((Ypred(~isnan(Yobs))-Yobs(~isnan(Yobs))).^2)); % sum squared error function ignoring NaNs
-[pbig0,prow,pcol] = psquash(fxf(par.value),par.fit,Ne); % for initial guesses we use value field in the par table
-ofun = @(p)(objfun(p,expt,fxf(par.value),prow,pcol,ixf,errfun)); % single parameter vector objective function in transformed space
-
-% seed with monte carlo best guess
-% Nmonte = 100;
-% ofunvals = Inf*ones(1,Nmonte);
-% for j = 1:Nmonte
-% 	p0(:,j) = pbig0 + 4*(rand(size(pbig0))-0.5);
-% 	ofunvals(j) = ofun(p0(:,j));
-% 	disp(ofunvals(j));
-% end
-% 
-% jbest = find(ofunvals==min(ofunvals));
-% pmbest = p0(:,jbest(1));
-
-pmbest = pbig0;
+%[pbig0,prow,pcol] = psquash(fxf(par.value),par.fit,Ne); % for initial guesses we use value field in the par table
+ofun = @(p)(objfun2(p,expt,pxform,errfun)); % single parameter vector objective function in transformed space
+pvec0 = pstruct2vec(pinit,pxform);
 
 % run fminsearch local optimizer using best guess from monte
 % use at least 1000 maxiter when running a single experiment...
 options = optimset('maxiter',2500,'maxfunevals',10000,'Display','iter'); % set the options for your favorite optimizer
-pbigbest = fminsearch(ofun,pmbest,options); % run your favorite optimizer
+pbigbest = fminsearch(ofun,pvec0,options); % run your favorite optimizer
 %pbigbest = fminsearch(ofun,pbigbest,options); % run your favorite optimizer again...
+% load pbest.mat (if you want to skip parameter estimation)
+pbest = pvec2struct(pbigbest,pxform)
 
-pmat_best = ixf(pfluff(pbigbest,fxf(par.value),prow,pcol,Ne)); % "fluff" optimized parameters into pmat shape and inverse transform values into parameter space
-
-
-%% convert these into a table for display purposes
-tmat_best = table('RowNames',par.Properties.RowNames); 
-
-for i = 1:length(expt)
-	tmat_best.(expt(i).name)=pmat_best(:,i);
-end
-
-disp('*************** PARAMETER SETTINGS *****************');
-disp(par)
-disp(' ');
-disp('*************** ESTIMATED PARAMETERS ***************')
-disp(tmat_best)
-%% 
 
 %% plot the final results using the best-fit parameters
 % that's it!
 figure('Position',[239   558   990   420]);
-plot_expt(expt,pmat_best,10.^[-2:0.25:6]','Xscale','log','Ylim',[0 100],'Xgrid','off','Ygrid','on','Xtick',10.^[-2:2:6]);
-save pmat_best
+xspan = 10.^[-2:0.25:6]';
+plot_expt2(expt,pbest,xspan,'Xscale','log','Ylim',[-10 100],'Xtick',10.^[-2:2:6]);
+
+%% create a summary table of results
+par.Properties.RowNames = par.paramnames;
+par.bestest = par.value;
+fnames = fieldnames(pbest);
+for j = 1:length(fnames)
+	par{fnames{j},'bestest'} = pbest.(fnames{j});
+end
+disp(par);
