@@ -6,19 +6,18 @@ nr_t_et,nr_t_et,0,10,log,0,# of timepoints to return from cellular interaction m
 T0,T0,0,1,log,0,initial number of target cells,1
 E0toT0,E0toT0,0,25,log,1,effector:target ratio,25
 Estar0,Estar0,0,0,log,1,initial number of depleted effector cells,0
-g_Z138,g,-1,0.026874477,log,0,tumor cell growth rate 1/hour (Z138 cell line),1.05776078947695e-12
-g_SUDHL4,g,-1,0.026874477,log,0,tumor cell growth rate 1/hour (SUDHL4 cell line),0.000221062007727036
-r,r,1,2.813069022,log,1,number of effector cells need to kill one target cell,1.1193084040069
-kexp,kexp,1,1.129546307,log,1,rate of recovery of effector cells from E* --> E 1/hours,0.194751864271006
-gamma,gamma,1,3.37e-06,log,1,slope relating complex formation to ADCC rate,3.81292158066286e-07
-CD20_Z138,CD20,-1,20.58494921,log,1,number of CD20 molecules per target cell (Z138 cell line),28732.5519292874
-CD20_SUDHL4,CD20,-1,20.58494921,log,1,number of CD20 molecules per target cell (SU-DHL4 cell line),285738.642756014
-CD16_V158,CD16,-1,9.883235532,log,1,number of CD16 molecules per effector cell (for V158 donor),11480.3061574918
-CD16_F158,CD16,-1,9.883235532,log,1,number of CD16 molecules per effector cell (for F158 donor),23012.3854351209
+g_Z138,g,-1,0.026874477,log,0,tumor cell growth rate 1/hour (Z138 cell line),0.317982468478679
+g_SUDHL4,g,-1,0.026874477,log,0,tumor cell growth rate 1/hour (SUDHL4 cell line),0.123403452002635
+r,r,1,2.813069022,log,1,number of effector cells need to kill one target cell,10.901268153287
+kexp,kexp,1,1.129546307,log,1,rate of recovery of effector cells from E* --> E 1/hours,1.41470247831133
+gamma,gamma,1,3.37e-06,log,1,slope relating complex formation to ADCC rate,2.94656935744572e-13
+CD20_Z138,CD20,-1,20.58494921,log,1,number of CD20 molecules per target cell (Z138 cell line),0.284205640592373
+CD20_SUDHL4,CD20,-1,20.58494921,log,1,number of CD20 molecules per target cell (SU-DHL4 cell line),0.818559365305286
+CD16,CD16,1,9.883235532,log,1,number of CD16 molecules per effector cell (for V158 donor),7.75619617929487
 RTX,RTX,0,53.7496,log,0,Rituximab concentration in nM,53.7496
-kon20,kon20,1,0.003880961,log,1,binding on rate of RTX to CD20,7.82554959564354e-07
+kon20,kon20,1,0.003880961,log,1,binding on rate of RTX to CD20,0.212153590653849
 koff20,koff20,0,0.0468,log,1,binding off rate of RTX to CD20,0.0468
-kon16_V158,kon16,-1,64.71922448,log,1,binding on rate of RTX to CD16 (V158 SNP variant),38.0110113102053
-kon16_F158,kon16,-1,64.71922448,log,1,binding on rate of RTX to CD16 (F158 SNP variant),44.862740158308
+kon16_V158,kon16,-1,64.71922448,log,1,binding on rate of RTX to CD16 (V158 SNP variant),0.00192078601019855
+kon16_F158,kon16,-1,64.71922448,log,1,binding on rate of RTX to CD16 (F158 SNP variant),0.00631795321499316
 koff16,koff16,0,16.956,log,1,binding off rate of RTX to CD16,16.956
 gamma_perf,gamma_perf,0,1,log,0,amount of perforin on an Estar cell?,1

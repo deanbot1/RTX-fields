@@ -74,8 +74,8 @@ for i = 1:Ne
 	CD16SNP = expt(i).name{2}(ion-4:ion-1);
 	CD16name = ['kon16_' CD16SNP];
 	expt(i).pmap.kon16 = @(pfit)pfit.(CD16name);
-	CD16name = ['CD16_' CD16SNP];
-	expt(i).pmap.CD16 = @(pfit)pfit.(CD16name);
+% 	CD16name = ['CD16_' CD16SNP];
+% 	expt(i).pmap.CD16 = @(pfit)pfit.(CD16name);
 end
 
 % now we loop through the expt structure and build our pfit vector
