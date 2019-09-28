@@ -1,5 +1,5 @@
-function [Tmat, Emat, CD20samps, CD16samps, CPXvec, LDHvec, perfvec] = cellpopmodel(CD20dist0, CD16dist0,tvec, T0, E0,...
-    adcxpars,CPXpars)
+function [Tmat, Emat, CD20samps, CD16samps, delCD16, LDHmat, perfmat] = cellpopmodel(CD20samps, CD16samps,...
+     nsamps, lambda, pstruct, expt)
 % This function is going to call the adcx function for an individual value
 % of CD20 and CD16 that is sampled from the observed distribution of a
 % patient. Within the adcx function, the reaction_ss function will be
@@ -41,7 +41,7 @@ function [Tmat, Emat, CD20samps, CD16samps, CPXvec, LDHvec, perfvec] = cellpopmo
 % randomly sample from it, or sample in steps according to the probability
 % obtained from data
 % CD16dist0: initial matlab distribution object also obtained from data
-% tvec: input time vector that we want to model (assuming this is in hours)
+% tvec: time parameters that adcx takes in
 % T0: initial number of tumor cells (T0= T+D)
 % E0: initial number of effector cells (E0= E+E*) assume effector cell
 % total is constant
@@ -51,27 +51,58 @@ function [Tmat, Emat, CD20samps, CD16samps, CPXvec, LDHvec, perfvec] = cellpopmo
 % to kill 1 tumor cell, rate of return of E* cells to E cells (replenishing
 % of CD16 after shedding)
 
-nsamps = 1000;
-[CD16samps]= randsmpl(pdCD16, nsamps, valuesCD16);
-[CD20samps] = randsmpl(pdCD20, nsamps, valuesCD20);
+% Assign all the parameters needed for adcx from the pstruct
+switch expt
+    case 'Z138'
+        g = pstruct.g_Z138;
+        kon16 = pstruct.kon16_V158; % TOTALLY GUESSED ON THIS
+    case 'SUDHL4'
+        g = pstruct.g_SUDHL4;
+        kon16 = pstruct.kon16_F158; % ALSO A GUESS
+end
+
+
+
+
+
+
+% Allocate the input parameters
+% Padcx = num2cell(adcxpars);
+% [g,r,kexp,gamma] = deal(Padcx{:});
+% Pcpx = num2cell(CPXpars);
+% [RTX,kon20,koff20,kon16,koff16,gamma_perf] = deal(Pcpx{:});
+% Ptvec = num2cell(tvec);
+% [tf_mol,tf_et,nr_t_mol,nr_t_et] = deal(Ptvec{:});
+% E0toT0 = E0/T0;
+
+Tmat       = zeros(pstruct.nr_t_et,nsamps);
+Emat       = zeros(pstruct.nr_t_et,nsamps);
+LDHmat     = zeros(pstruct.nr_t_et,nsamps);
+perfmat    = zeros(pstruct.nr_t_et,nsamps);
+delCD16    = zeros(nsamps,1);
+
 
 for i = 1:nsamps
+    i
+%     [T,E,Estar,LDH,perf,CPX] = adcx(tf_mol,tf_et,nr_t_mol,nr_t_et,T0,E0,g,r,kexp,gamma,...
+%     CD20,CD16,RTX,kon20,koff20,kon16,koff16,gamma_perf);
     % generate one column of your sampled data by calling the adcx model
     % which calles the reaction_ss function
-    [Ti, Ei, Estari, LDHi, perfi, CPXi] = adcx(tvec, T0,E0, adcxpars,...
-        CD20samps(i), CD16samps(i),CPXpars);
-    Tmat(:,i) = Ti;
-    Emat(:,i) = Estari;
-    LDHmat(:,i) = LDHi;
-    perfmat(:,i) =perfi;
-    delCD16(i,1) = CPXi;
+    [Ti, Ei, Estari, LDHi, perfi, CPXi] = adcx(pstruct.tf_mol,pstruct.tf_et,...
+        pstruct.nr_t_mol,pstruct.nr_t_et,pstruct.T0,pstruct.E0toT0,...
+        pstruct.Estar0,g,pstruct.r,pstruct.kexp,pstruct.gamma,...
+        (CD20samps(i)/pstruct.gamma),(CD16samps(i)/lambda),pstruct.RTX,...
+        pstruct.kon20,pstruct.koff20,kon16,pstruct.koff16,...
+        pstruct.gamma_perf);
+    
+    Tmat(:,i)     = Ti;
+    Emat(:,i)     = Ei;
+    LDHmat(:,i)   = LDHi;
+    perfmat(:,i)  = perfi;
+    delCD16(i,1)  = CPXi;
+ 
     
 end
-% For a given CD16, CD20 distribution, here are the expected LDH and perf
-% trajectories over time
-LDHvec = sum(LDHmat,2);
-perfvec = sum(perfmat,2);
-
 
 end
 
