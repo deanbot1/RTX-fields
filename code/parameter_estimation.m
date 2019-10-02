@@ -128,3 +128,20 @@ end
 disp(par);
 
 writetable(par,'parameter_estimation_results.csv')
+
+%% if you want to read in the results table and skip param est just skip the last three blocks and jump to here
+
+parfin = readtable('parameter_estimation_results.csv');
+
+k = 0;
+for j = 1:height(parfin)
+	if parfin.fit(j) ~= 0
+		k = k+1;
+		pfinal.(parfin.paramnames{j}) = parfin.bestest(j);
+	end
+end
+
+figure('Position',[239   558   990   420]);
+xspan = 10.^[-2:0.25:6]';
+plot_expt2(expt,pfinal,xspan,'Xscale','log','Ylim',[-10 100],'Xtick',10.^[-2:2:6]);
+
