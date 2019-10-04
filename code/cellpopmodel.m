@@ -1,4 +1,4 @@
-function [Tmat, Emat, CD20samps, CD16samps, delCD16, LDHmat, perfmat] = cellpopmodel(CD20samps, CD16samps,...
+function [Tmat, Emat, CD20mat, CD16mat, delCD16, LDHmat, perfmat] = cellpopmodel(CD20samps, CD16samps,...
      nsamps, lambda, pstruct, expt)
 % This function is going to call the adcx function for an individual value
 % of CD20 and CD16 that is sampled from the observed distribution of a
@@ -25,9 +25,9 @@ function [Tmat, Emat, CD20samps, CD16samps, delCD16, LDHmat, perfmat] = cellpopm
 % number of tumor cells E in time for each CD16 value
 % Cpxvec: row vector of width of sampled CD16/CD20values containing
 % the resulting number of complexes in time for each CD16/CD20 value
-% CD20samps: these are the values of CD20 that were sampled that correspond 
+% CD20mat: these are the values of CD20 that were sampled that correspond 
 % to the columns in your Tmat
-% CD16samps: these are the values of CD16 that were sampled that correspond
+% CD16mat: these are the values of CD16 that were sampled that correspond
 % the columns in your E mat
 % LDHvec: column vector of length t containing the sum of the number of
 % dead cells at each time for all CD16/CD20 combos, times some LDH
@@ -100,9 +100,26 @@ for i = 1:nsamps
     LDHmat(:,i)   = LDHi;
     perfmat(:,i)  = perfi;
     delCD16(i,1)  = CPXi;
+   
  
     
 end
+
+% Make a matrix that is CD20 values * number of tumor cells at each time
+CD20mat = zeros(size(Tmat));
+    for i = 1:nsamps
+    CD20mat(:,i) = Tmat(:,i).*CD20samps(i); 
+    end
+
+% Make the same matrix for CD19 using E and Estar mat
+    Estarmat = max(max(Emat))-Emat;
+
+    CD16mat = zeros(size(Emat));
+    for i = 1:nsamps
+    CD16matE(:,i) = Emat(:,i).*CD16samps(i);
+    CD16matEstar(:,i) = Estarmat(:,i).*CD16samps(i)-delCD16(i);
+    end
+CD16mat = CD16matE;
 
 end
 
