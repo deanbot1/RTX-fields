@@ -57,10 +57,10 @@ end
 
 
 
-%% Sample from your distribution
+%% Sample from your literature distribution to make sure sampling works well
 
 % Scale CD20 distribution
-nsamps = 1000;
+nsamps = 10000;
 [CD16samps]= randsmpl(pdCD16, nsamps, valuesCD16);
 [CD20samps] = randsmpl(pdCD20, nsamps, valuesCD20);
 % test the histcounts function using the values form the data
@@ -84,86 +84,134 @@ ylabel('Number of cells')
 title('Test Sampling CD20')
 set(gca,'FontSize',16, 'Xscale', 'log')
 
-currmeanCD16 = mean(CD16samps)
-currmeanCD20 = mean(CD20samps)
+logmeanCD16 = mean(log(CD16samps));
+logmeanCD20 = mean(log(CD20samps));
 
 %% Rescale the distribution so that the new mean is equal to the parameter estimation value
-expt = 'Z138';
 
-% Honestly, not exactly sure how to do this... 
+expt = 'Z138';
+% Scale them by the log of the mean (geometric mean) which is the
+% equivalent of dividing by the log of the mean... Try this and see what
+% happens
+%MAKE THIS CLEANER 
 switch expt
     case 'Z138'
+    goallogmeanCD20 = log(pstruct.CD20_Z138);
     goalmeanCD20 = pstruct.CD20_Z138;
     case 'SUDHL4'
+    goallogmeanCD20 = log(pstruct.CD20_SUDHL4);
     goalmeanCD20 = pstruct.CD20_SUDHL4;
 end  
 goalmeanCD16 = pstruct.CD16;
-currminCD16 = min(CD16samps);
-currmaxCD16 = max(CD16samps);
-currminCD20 = min(CD20samps);
-currmaxCD20 = max(CD20samps);
-% First try just shifting the distributions
+goallogmeanCD16 = log(pstruct.CD16);
 
-CD20samps_shift = CD20samps-(currmeanCD20-goalmeanCD20);
-valuesCD20_shift = valuesCD20-(currmeanCD20-goalmeanCD20);
-checkCD20mean = mean(CD20samps_shift);
-CD16samps_shift = CD16samps-(currmeanCD16-goalmeanCD16);
-valuesCD16_shift = valuesCD16-(currmeanCD16-goalmeanCD16);
-checkCD16mean = mean(CD16samps_shift);
+%% Rescale distributions linearly
 
-NCD16_shift = histcounts(CD16samps_shift, valuesCD16_shift);
-NCD20_shift = histcounts(CD20samps_shift, valuesCD20_shift);
+currmeanCD20samps = mean(CD20samps);
+currmeanCD16samps = mean(CD16samps);
+ 
+CD20new = (CD20samps./mean(CD20samps)).*goalmeanCD20;
+valuesCD20new = (valuesCD20./mean(CD20samps)).*goalmeanCD20;
+CD20test = mean(CD20new);
+NCD20new = histcounts(CD20new, valuesCD20new);
 
-% Plot the shifted, but not scaled, distributions
-figure;
-plot(valuesCD16_shift(1:end-1), NCD16_shift, 'b.')
-hold on
-plot(checkCD16mean, 1, 'b*')
-xlabel('CD16 expression')
-ylabel('Number of cells')
-%xlim([5e2 10e3])
-title('Shifted CD16 distribution')
-%set(gca,'FontSize',16, 'Xscale', 'log')
+CD16new = (CD16samps./mean(CD16samps)).*goalmeanCD16;
+valuesCD16new = (valuesCD16./mean(CD16samps)).*goalmeanCD16;
+CD16test = mean(CD16new);
+NCD16new = histcounts(CD16new, valuesCD16new);
 
 
 figure;
-plot(valuesCD20_shift(1:end-1), NCD20_shift, 'r.')
+plot(valuesCD20new(1:end-1), NCD20new, 'r.')
 hold on
-plot(checkCD20mean, 1, 'r*')
+plot(CD20test, 1,'r*','LineWidth', 3)
 xlabel('CD20 expression')
 ylabel('Number of cells')
-title('Shifted CD20 distribution')
-%set(gca,'FontSize',16, 'Xscale', 'log')
+legend('samples', 'mean', 'Location', 'NorthWest')
+legend boxoff
+title('Rescaled CD20 distribution linearly')
+set(gca,'FontSize',16, 'Xscale', 'log')
 
-% Next we need to scale these but I need some feedback on how to do this...
+
+figure;
+plot(valuesCD16new(1:end-1), NCD16new, 'b.')
+hold on
+plot(CD16test, 1,'b*','LineWidth', 3)
+xlabel('CD16 expression')
+ylabel('Number of cells')
+xlim([0.5 20])
+legend('samples', 'mean', 'Location', 'NorthWest')
+legend boxoff
+title('Rescaled CD16 distribution linearly')
+set(gca,'FontSize',16, 'Xscale', 'log')
+%% Rescale distributions logarithmically-- doesn't work because these 
+% become negative
+
+CD16lognew = log(CD16samps) + log(goalmeanCD16./currmeanCD16samps);
+valuesCD16lognew = log(valuesCD16) + log(goalmeanCD16./currmeanCD16samps);
+CD16logtest = mean(CD16lognew)
+NCD16lognew = histcounts(CD16lognew, valuesCD16lognew);
+
+CD20lognew = log(CD20samps) + log(goalmeanCD20./currmeanCD20samps);
+valuesCD20lognew = log(valuesCD20) + log(goalmeanCD20./currmeanCD20samps);
+CD20logtest = mean(CD20lognew)
+NCD20lognew = histcounts(CD20lognew, valuesCD20lognew);
+
+figure;
+plot(valuesCD16lognew(1:end-1), NCD16lognew, 'b.')
+hold on
+plot(CD16logtest, 1,'b*','LineWidth', 3)
+xlabel('CD16 expression')
+ylabel('Number of cells')
+title('Rescaled CD16 distribution logarithmically')
+set(gca,'FontSize',16, 'Xscale', 'log')
+
+figure;
+plot(valuesCD20lognew(1:end-1), NCD20lognew, 'r.')
+hold on
+plot(CD20logtest, 1,'r*','LineWidth', 3)
+xlabel('CD20 expression')
+ylabel('Number of cells')
+title('Rescaled CD20 distribution logarithmically')
+set(gca,'FontSize',16, 'Xscale', 'log')
 
 
 %% Run the loop that iterates through the CD16 and CD20 samples and runs
 % the forward adcx and reaction_ss model
 
 % I Can't remember what Lambda even does :(
-lambda = max(CD16samps_shift)*1e4;
+lambda = 1e-2;
 
 % Call cellpopmodel to obtain the individual tumor and effector cell
 % trajectories
 expt = 'Z138';
-% Simulate using mean only: Just set all the samples to be the parameter value
+%% UNIFORM Simulate using mean only: Just set all the samples to be the parameter value
 nsamps = 1000
-CD20uniform = goalmeanCD20*ones(nsamps,1);
-CD16uniform = goalmeanCD16*ones(nsamps,1);
+CD20uniform = exp(goalmeanCD20)*ones(nsamps,1);
+CD16uniform = exp(goalmeanCD16)*ones(nsamps,1);
+CD20distrib = CD20uniform;
+CD16distrib = CD16uniform;
+%% Use sampled distributions as input to the model
 
-[Tmatmean, Ematmean, CD20matunif, CD16matunif, delCD16, LDHmat, perfmat] = cellpopmodel(CD20uniform,...
-    CD16uniform,nsamps, lambda, pstruct, expt);
+CD20distrib = CD20new;
+CD16distrib = CD16new;
+%% Run population level model using CD16 and CD20 value from input each time
+
+% Output of this is rows=time, columns = samples. We sum all of the samples
+% to get the total population level behavior
+[Tmat, Emat, CD20mat, CD16mat, delCD16, LDHmat, perfmat] = cellpopmodel(CD20distrib,...
+    CD16distrib,nsamps, lambda, pstruct, expt);
 LDHvec = sum(LDHmat,2);
 perfvec = sum(perfmat,2);
+tvec =  linspace(0,pstruct.tf_et,pstruct.nr_t_et);
 
 figure;
 hold off
-plot(sum(Tmatmean,2),'LineWidth',2)
+plot(tvec,sum(Tmat,2),'LineWidth',2)
 hold on
-plot(sum(Ematmean,2),'LineWidth',2)
-plot(LDHvec,'LineWidth',2)
-xlabel('Time (hours)')
+plot(tvec, sum(Emat,2),'LineWidth',2)
+plot(tvec, LDHvec,'LineWidth',2)
+xlabel('Time')
 ylabel('Number of cells/molecules')
 title('Tumor and Effector Cell Dynamics with mean CD16 and CD20')
 legend('Target cells','Effector cells (CD16)','LDH')
@@ -172,27 +220,6 @@ set(gca,'FontSize',16)
 
 
 
-%% Simulate using the shifted distribution
-% Unfortunately, this doesn't seem to be working well (which isn't
-% surprising because the samples of CD20 and CD16 are negative which
-% doesn't make any sense
-[Tmat, Emat, CD20mat, CD16mat, delCD16, LDHmat, perfmat] = cellpopmodel(CD20samps_shift,...
-    CD16samps_shift,nsamps, lambda, pstruct, expt);
-LDHvec = sum(LDHmat,2);
-perfvec = sum(perfmat,2);
-
-figure;
-hold off
-plot(sum(Tmat,2),'LineWidth',2)
-hold on
-plot(sum(Emat,2),'LineWidth',2)
-plot(LDHvec,'LineWidth',2)
-xlabel('Time (hours)')
-ylabel('Number of cells/molecules')
-title('Tumor and Effector Cell Dynamics with shifted distribution of CD16 and CD20')
-legend('Target cells','Effector cells (CD16)','LDH')
-legend boxoff
-set(gca,'FontSize',16)
 
 %% Use the output CD20mat and CD16 mat to make videos of distributions 
 % Here we want to plot the distribution along all the columns, at each of
@@ -201,14 +228,14 @@ set(gca,'FontSize',16)
 % This should show that the average levels decrease over time
 Tvec = sum(Tmat,2);
 Evec = sum(Emat,2);
-Estarvec = sum(Estarmat,2);
+%Estarvec = sum(Estarmat,2);
 CD20vec = sum(CD20mat,2); % total CD20 levels over time
 CD16vec = sum(CD16mat,2);
 
 
 figure;
 subplot(1,2,1)
-plot(CD20vec./Tvec,'g','LineWidth', 2)
+plot(tvec, CD20vec./Tvec,'g','LineWidth', 2)
 hold on
 xlabel('Time (hours)')
 ylabel('Average number of CD20 receptors per cell')
@@ -216,9 +243,9 @@ title('Mean CD20 receptors per tumor cell during RTX treatment')
 set(gca,'FontSize',16)
 %xlim([0 nr_t_et])
 subplot(1,2,2)
-plot(Tvec,'b','LineWidth', 2)
+plot(tvec, Tvec,'b','LineWidth', 2)
 hold on
-xlabel('Time (hours)')
+xlabel('Time ')
 ylabel('Number of tumor cells')
 title('Tumor cells in time with constant RTX')
 set(gca,'FontSize',16)
@@ -226,23 +253,23 @@ set(gca,'FontSize',16)
 
 figure;
 subplot(1,2,1)
-plot(CD16vec./Evec,'c','LineWidth', 2)
+plot(tvec, CD16vec./Evec,'c','LineWidth', 2)
 hold on
-xlabel('Time (hours)')
+xlabel('Time')
 ylabel('Average number of CD16 receptors per NK cell')
 title('Mean CD16 receptors per NK cell during RTX treatment')
 set(gca,'FontSize',16)
-xlim([0 nr_t_et])
+%xlim([0 nr_t_et])
 subplot(1,2,2)
 plot(Evec,'b','LineWidth', 2)
 hold on
-plot(Estarvec, 'k', 'LineWidth',2)
+%plot(Estarvec, 'k', 'LineWidth',2)
 xlabel('Time (hours)')
-legend('active NK cells', 'depleted NK cells')
+%legend('active NK cells', 'depleted NK cells')
 ylabel('Number of NK cells')
-title('NK cell phenotypes in time with constant RTX')
+title('NK cells under constant RTX')
 set(gca,'FontSize',16)
-xlim([0 nr_t_et])
+%xlim([0 nr_t_et])
 
 %% Plot the total CD20 receptor distribution over time and the pdf
 % CD20 distributions
@@ -251,12 +278,15 @@ figure;
 for i = 1:pstruct.nr_t_et
 subplot(1,2,1)
 hold off
-plot(CD20edges(1:end-1), NCD200,'b', 'LineWidth', 2)
+plot(valuesCD20new(1:end-1), NCD20new,'b.', 'LineWidth', 2)
 hold on
-plot(CD20edges(1:end-1), NCD20(i,:), 'm','LineWidth', 0.5)
-legend('t=0', ['t=', num2str(i), 'hr'])
-%ylim([0 8000])
-%xlim([0 0.1])
+% at each row (time point) bin the CD20 levels for the individual combos
+NCD20i = histcounts(CD20mat(i,:), valuesCD20new);
+plot(valuesCD20new(1:end-1), NCD20i, 'c.','LineWidth', 0.5)
+legend('t=0', ['t=', num2str(i), 'hr'], 'Location', 'NorthWest')
+legend boxoff
+ylim([0 90])
+%xlim([])
 set(gca,'FontSize',16,'LineWidth',1.5,'Xscale', 'log')
 ylabel('Number of CD20 receptors')
 xlabel('\lambda*number of CD20 receptors per cell')
@@ -264,17 +294,20 @@ title(['Total CD20 distribution on tumor cells, t=', num2str(i), 'hours'])
 
 subplot(1,2,2)
 hold off
-plot(CD20edges, pdCD20, 'b', 'LineWidth', 2)
+plot(valuesCD16new(1:end-1), NCD16new, 'r.', 'LineWidth', 2)
 %plot(CD20edges(1:end-1), pCD20(1,:),'r', 'LineWidth', 2)
 hold on
-plot(CD20edges(1:end-1), pCD20(i,:), 'm','LineWidth', 0.5)
-legend('t=0', ['t=', num2str(i), 'hr'])
+NCD16i = histcounts(CD16mat(i,:), valuesCD16new);
+plot(valuesCD16new(1:end-1), NCD16i, 'm.','LineWidth', 0.5)
+legend('t=0', ['t=', num2str(i), 'hr'], 'Location', 'NorthWest')
+legend boxoff
+
 set(gca,'FontSize',16,'LineWidth',1.5,'Xscale', 'log')
-ylabel('Probability')
-xlabel('\lambda*number of CD20 receptors per cell')
-title(['Normalized CD20 distribution on tumor cells, t=', num2str(i), 'hours'])
-%xlim([ 0 0.1])
-ylim([ 0 0.01])
+ylabel('Number of CD16 receptors')
+xlabel('\lambda*number of CD16 receptors per cell')
+title(['Total CD16 distribution on NK cells, t=', num2str(i), 'hours'])
+xlim([ 0.1 10])
+ylim([ 0 160])
 drawnow
 pause(0.01)
 end
@@ -284,10 +317,10 @@ end
 
 figure;
 for i = 1:100
-    if CD20samps_shift(i)>median(CD20samps_shift)
+    if CD20new(i)>median(CD20new)
     plot(Tmat(:,i), 'r', 'LineWidth', 1)
     end
-    if CD20samps_shift(i)<median(CD20samps_shift)
+    if CD20new(i)<median(CD20new)
     plot(Tmat(:,i), 'b', 'LineWidth', 1)
     end
     hold on
@@ -296,15 +329,15 @@ for i = 1:100
     ylabel('Relative number of tumor cells')
     title('Observed variability in tumor cell trajectories')
     set(gca,'FontSize',16)
-    ylim([0 14])
+    %ylim([0 14])
 end
 
 figure;
 for i = 2:101
-    if CD16samps_shift(i)>median(CD16samps_shift) 
+    if CD16new(i)>median(CD16new) 
     plot(Tmat(:,i), 'g', 'LineWidth', 1)
     end
-    if CD16samps_shift(i)<median(CD16samps_shift)
+    if CD16new(i)<median(CD16new)
     plot(Tmat(:,i), 'y', 'LineWidth', 1)
     end
     hold on
@@ -313,5 +346,5 @@ for i = 2:101
     ylabel('Relative number of tumor cells')
     title('Observed variability in tumor cell trajectories')
     set(gca,'FontSize',16)
-    ylim([0 14])
+    %ylim([0 14])
 end
