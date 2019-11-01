@@ -114,12 +114,14 @@ CD20new = (CD20samps./mean(CD20samps)).*goalmeanCD20;
 valuesCD20new = (valuesCD20./mean(CD20samps)).*goalmeanCD20;
 CD20test = mean(CD20new);
 NCD20new = histcounts(CD20new, valuesCD20new);
+pdCD20new = NCD20new./sum(NCD20new);
 
 CD16new = (CD16samps./mean(CD16samps)).*goalmeanCD16;
 valuesCD16new = (valuesCD16./mean(CD16samps)).*goalmeanCD16;
 CD16test = mean(CD16new);
 NCD16new = histcounts(CD16new, valuesCD16new);
 
+ 
 
 figure;
 plot(valuesCD20new(1:end-1), NCD20new, 'r.')
@@ -132,6 +134,20 @@ legend boxoff
 title('Rescaled CD20 distribution linearly')
 set(gca,'FontSize',16, 'Xscale', 'log')
 
+figure;
+histogram(CD20new, valuesCD20new, 'Normalization', 'probability','FaceColor', 'red')
+xlabel('Number of CD20 receptors per cell')
+ylabel('Proportion of cells')
+set(gca,'FontSize',16, 'Xscale', 'log')
+
+% downsample the edges
+ind20 = 1:10:length(valuesCD20new);
+figure;
+histogram(CD20new, valuesCD20new(ind20), 'Normalization', 'probability','FaceColor', 'red')
+xlabel('Number of CD20 receptors per cell')
+ylabel('Proportion of cells')
+title('Histogram of initial CD20 distribution')
+set(gca,'FontSize',16, 'Xscale', 'log')
 
 figure;
 plot(valuesCD16new(1:end-1), NCD16new, 'b.')
@@ -144,18 +160,40 @@ legend('samples', 'mean', 'Location', 'NorthWest')
 legend boxoff
 title('Rescaled CD16 distribution linearly')
 set(gca,'FontSize',16, 'Xscale', 'log')
-%% Rescale distributions logarithmically-- doesn't work because these 
-% become negative
 
-CD16lognew = log(CD16samps) + log(goalmeanCD16./currmeanCD16samps);
-valuesCD16lognew = log(valuesCD16) + log(goalmeanCD16./currmeanCD16samps);
+figure;
+histogram(CD16new, valuesCD16new, 'Normalization', 'probability','FaceColor', 'blue')
+xlabel('Number of CD16 receptors per cell')
+ylabel('Proportion of cells')
+set(gca,'FontSize',16, 'Xscale', 'log')
+xlim([0.5 20])
+
+% downsample the edges
+ind16 = 1:5:length(valuesCD16new);
+figure;
+histogram(CD16new, valuesCD16new(ind16), 'Normalization', 'probability','FaceColor', 'blue')
+xlabel('Number of CD16 receptors per cell')
+ylabel('Proportion of cells')
+title('Histogram of initial CD16 distribution')
+xlim([0.5 20])
+set(gca,'FontSize',16, 'Xscale', 'log')
+
+
+
+
+%% Alternative scaling: Rescale distributions logarithmically
+
+% plot these as histograms 
+CD16lognew = exp(log(CD16samps) + log(goalmeanCD16./currmeanCD16samps));
+valuesCD16lognew = exp(log(valuesCD16) + log(goalmeanCD16./currmeanCD16samps));
 CD16logtest = mean(CD16lognew)
 NCD16lognew = histcounts(CD16lognew, valuesCD16lognew);
 
-CD20lognew = log(CD20samps) + log(goalmeanCD20./currmeanCD20samps);
-valuesCD20lognew = log(valuesCD20) + log(goalmeanCD20./currmeanCD20samps);
+CD20lognew = exp(log(CD20samps) + log(goalmeanCD20./currmeanCD20samps));
+valuesCD20lognew = exp(log(valuesCD20) + log(goalmeanCD20./currmeanCD20samps));
 CD20logtest = mean(CD20lognew)
 NCD20lognew = histcounts(CD20lognew, valuesCD20lognew);
+
 
 figure;
 plot(valuesCD16lognew(1:end-1), NCD16lognew, 'b.')
@@ -167,6 +205,20 @@ title('Rescaled CD16 distribution logarithmically')
 set(gca,'FontSize',16, 'Xscale', 'log')
 
 figure;
+histogram(CD16lognew, valuesCD16lognew, 'Normalization', 'probability', 'FaceColor', 'blue')
+set(gca,'FontSize',16)
+xlabel('Scaled CD16 levels per cell')
+ylabel('Proportion of cells')
+title('Histogram of log-scaled CD16 distribution')
+
+figure;
+histogram(CD16lognew, valuesCD16lognew(ind16), 'Normalization', 'probability', 'FaceColor', 'blue')
+set(gca,'FontSize',16)
+xlabel('Scaled CD16 levels per cell')
+ylabel('Proportion of cells')
+title('Histogram of log-scaled CD16 distribution')
+
+figure;
 plot(valuesCD20lognew(1:end-1), NCD20lognew, 'r.')
 hold on
 plot(CD20logtest, 1,'r*','LineWidth', 3)
@@ -175,12 +227,25 @@ ylabel('Number of cells')
 title('Rescaled CD20 distribution logarithmically')
 set(gca,'FontSize',16, 'Xscale', 'log')
 
+figure;
+histogram(CD20lognew, valuesCD20lognew, 'Normalization', 'probability', 'FaceColor', 'red')
+set(gca,'FontSize',16, 'Xscale', 'log')
+xlabel('Scaled CD20 levels per cell')
+ylabel('Proportion of cells')
+title('Histogram of log-scaled CD20 distribution')
+
+figure;
+histogram(CD20lognew, valuesCD20lognew(ind20), 'Normalization', 'probability', 'FaceColor', 'red')
+set(gca,'FontSize',16, 'Xscale', 'log')
+xlabel('Scaled CD20 levels per cell')
+ylabel('Proportion of cells')
+title('Histogram of log-scaled CD20 distribution')
 
 %% Run the loop that iterates through the CD16 and CD20 samples and runs
 % the forward adcx and reaction_ss model
 
 % I Can't remember what Lambda even does :(
-lambda = 1e-2;
+lambda = 1;
 
 % Call cellpopmodel to obtain the individual tumor and effector cell
 % trajectories
@@ -193,8 +258,8 @@ CD20distrib = CD20uniform;
 CD16distrib = CD16uniform;
 %% Use sampled distributions as input to the model
 
-CD20distrib = CD20new;
-CD16distrib = CD16new;
+CD20distrib = CD20lognew;
+CD16distrib = CD16lognew;
 %% Run population level model using CD16 and CD20 value from input each time
 
 % Output of this is rows=time, columns = samples. We sum all of the samples
@@ -272,44 +337,37 @@ set(gca,'FontSize',16)
 %xlim([0 nr_t_et])
 
 %% Plot the total CD20 receptor distribution over time and the pdf
-% CD20 distributions
-% Make this into a video
+% I am getting confused over what is changing about the CD16 distribution
+% here...
+
 figure;
 for i = 1:pstruct.nr_t_et
 subplot(1,2,1)
-hold off
-plot(valuesCD20new(1:end-1), NCD20new,'b.', 'LineWidth', 2)
+histogram(CD20lognew, valuesCD20lognew(ind20), 'Normalization', 'probability', 'FaceColor', 'magenta', 'FaceAlpha', 0.2)
 hold on
-% at each row (time point) bin the CD20 levels for the individual combos
-NCD20i = histcounts(CD20mat(i,:), valuesCD20new);
-plot(valuesCD20new(1:end-1), NCD20i, 'c.','LineWidth', 0.5)
+histogram(CD20mat(i,:), valuesCD20lognew(ind20), 'Normalization', 'probability', 'FaceColor', 'red')
 legend('t=0', ['t=', num2str(i), 'hr'], 'Location', 'NorthWest')
 legend boxoff
-ylim([0 90])
-%xlim([])
 set(gca,'FontSize',16,'LineWidth',1.5,'Xscale', 'log')
-ylabel('Number of CD20 receptors')
-xlabel('\lambda*number of CD20 receptors per cell')
-title(['Total CD20 distribution on tumor cells, t=', num2str(i), 'hours'])
+ylabel('Proportion of cells')
+xlabel('CD20 level per cell')
+title(['CD20 distribution on tumor cells, t=', num2str(i), 'hours'])
+ylim([0 0.16])
 
 subplot(1,2,2)
-hold off
-plot(valuesCD16new(1:end-1), NCD16new, 'r.', 'LineWidth', 2)
-%plot(CD20edges(1:end-1), pCD20(1,:),'r', 'LineWidth', 2)
+histogram(CD16mat(1,:), valuesCD16lognew(ind16), 'Normalization', 'probability', 'FaceColor', 'cyan', 'FaceAlpha', 0.2)
 hold on
-NCD16i = histcounts(CD16mat(i,:), valuesCD16new);
-plot(valuesCD16new(1:end-1), NCD16i, 'm.','LineWidth', 0.5)
+histogram(CD16mat(i,:), valuesCD16lognew(ind16), 'Normalization', 'probability', 'FaceColor', 'blue');
 legend('t=0', ['t=', num2str(i), 'hr'], 'Location', 'NorthWest')
 legend boxoff
-
-set(gca,'FontSize',16,'LineWidth',1.5,'Xscale', 'log')
-ylabel('Number of CD16 receptors')
-xlabel('\lambda*number of CD16 receptors per cell')
-title(['Total CD16 distribution on NK cells, t=', num2str(i), 'hours'])
-xlim([ 0.1 10])
-ylim([ 0 160])
+xlim([ valuesCD16lognew(1) valuesCD16lognew(end)])
+set(gca,'FontSize',16,'LineWidth', 1.5)
+ylabel('Proportion of cells')
+xlabel('CD16 level per cell')
+title(['CD16 distribution on NK cells, t=', num2str(i), 'hours'])
 drawnow
 pause(0.01)
+xlim([0 12])
 end
 
 
