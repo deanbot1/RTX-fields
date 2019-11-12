@@ -83,7 +83,7 @@ delCD16    = zeros(nsamps,1);
 
 
 for i = 1:nsamps
-    i
+    %i
 %     [T,E,Estar,LDH,perf,CPX] = adcx(tf_mol,tf_et,nr_t_mol,nr_t_et,T0,E0,g,r,kexp,gamma,...
 %     CD20,CD16,RTX,kon20,koff20,kon16,koff16,gamma_perf);
     % generate one column of your sampled data by calling the adcx model
@@ -91,12 +91,13 @@ for i = 1:nsamps
     [Ti, Ei, Estari, LDHi, perfi, CPXi] = adcx(pstruct.tf_mol,pstruct.tf_et,...
         pstruct.nr_t_mol,pstruct.nr_t_et,pstruct.T0,pstruct.E0toT0,...
         pstruct.Estar0,g,pstruct.r,pstruct.kexp,pstruct.gamma,...
-        (CD20samps(i)/pstruct.gamma),(CD16samps(i)/lambda),pstruct.RTX,...
+        (CD20samps(i)),(CD16samps(i)),pstruct.RTX,...
         pstruct.kon20,pstruct.koff20,kon16,pstruct.koff16,...
         pstruct.gamma_perf);
     
     Tmat(:,i)     = Ti;
     Emat(:,i)     = Ei;
+    Estarmat(:,i) = Estari;
     LDHmat(:,i)   = LDHi;
     perfmat(:,i)  = perfi;
     delCD16(i,1)  = CPXi;
@@ -111,15 +112,15 @@ CD20mat = zeros(size(Tmat));
     CD20mat(:,i) = Tmat(:,i).*CD20samps(i); 
     end
 
-% Make the same matrix for CD19 using E and Estar mat
-    Estarmat = max(max(Emat))-Emat;
+% Make the same matrix for CD16 using E and Estar mat
+
 
     CD16mat = zeros(size(Emat));
     for i = 1:nsamps
-    CD16matE(:,i) = Emat(:,i).*CD16samps(i);
-    CD16matEstar(:,i) = Estarmat(:,i).*CD16samps(i)-delCD16(i);
+    CD16mat(:,i) = Emat(:,i).*CD16samps(i);
+    CD16matEstar(:,i) = Estarmat(:,i).*(CD16samps(i)-delCD16(i));
     end
-CD16mat = CD16matE;
+
 
 end
 

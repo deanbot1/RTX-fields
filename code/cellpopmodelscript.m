@@ -258,8 +258,8 @@ CD20distrib = CD20uniform;
 CD16distrib = CD16uniform;
 %% Use sampled distributions as input to the model
 
-CD20distrib = CD20lognew;
-CD16distrib = CD16lognew;
+CD20distrib = CD20new;
+CD16distrib = CD16new;
 %% Run population level model using CD16 and CD20 value from input each time
 
 % Output of this is rows=time, columns = samples. We sum all of the samples
@@ -341,33 +341,35 @@ set(gca,'FontSize',16)
 % here...
 
 figure;
-for i = 1:pstruct.nr_t_et
+for i = 2:pstruct.nr_t_et
 subplot(1,2,1)
-histogram(CD20lognew, valuesCD20lognew(ind20), 'Normalization', 'probability', 'FaceColor', 'magenta', 'FaceAlpha', 0.2)
+histogram(CD20mat(1,:)./Tmat(1,:), valuesCD20new(ind20), 'Normalization', 'probability', 'FaceColor', 'magenta', 'FaceAlpha', 0.2)
 hold on
-histogram(CD20mat(i,:), valuesCD20lognew(ind20), 'Normalization', 'probability', 'FaceColor', 'red')
-legend('t=0', ['t=', num2str(i), 'hr'], 'Location', 'NorthWest')
+histogram((CD20mat(i,:)./Tmat(i,:)), valuesCD20new(ind20), 'Normalization', 'probability', 'FaceColor', 'red')
+legend('t=0', ['t=', num2str(i-1), 'hr'], 'Location', 'NorthWest')
 legend boxoff
 set(gca,'FontSize',16,'LineWidth',1.5,'Xscale', 'log')
 ylabel('Proportion of cells')
 xlabel('CD20 level per cell')
-title(['CD20 distribution on tumor cells, t=', num2str(i), 'hours'])
+title(['CD20 distribution on tumor cells, t=', num2str(i-1), 'hours'])
 ylim([0 0.16])
 
 subplot(1,2,2)
-histogram(CD16mat(1,:), valuesCD16lognew(ind16), 'Normalization', 'probability', 'FaceColor', 'cyan', 'FaceAlpha', 0.2)
+histogram(CD16mat(1,:)./Emat(1,:), valuesCD16new(ind16), 'Normalization', 'probability', 'FaceColor', 'cyan', 'FaceAlpha', 0.2)
 hold on
-histogram(CD16mat(i,:), valuesCD16lognew(ind16), 'Normalization', 'probability', 'FaceColor', 'blue');
-legend('t=0', ['t=', num2str(i), 'hr'], 'Location', 'NorthWest')
+histogram((CD16mat(i,:)./Emat(i,:)), valuesCD16new(ind16), 'Normalization', 'probability', 'FaceColor', 'blue');
+legend('t=0', ['t=', num2str(i-1), 'hr'], 'Location', 'NorthWest')
 legend boxoff
-xlim([ valuesCD16lognew(1) valuesCD16lognew(end)])
+%xlim([ valuesCD16new(1) valuesCD16new(end)])
+xlim([0 12])
 set(gca,'FontSize',16,'LineWidth', 1.5)
 ylabel('Proportion of cells')
 xlabel('CD16 level per cell')
-title(['CD16 distribution on NK cells, t=', num2str(i), 'hours'])
+title(['CD16 distribution on NK cells, t=', num2str(i-1), 'hours'])
 drawnow
 pause(0.01)
-xlim([0 12])
+hold off
+
 end
 
 
