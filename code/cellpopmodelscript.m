@@ -38,7 +38,6 @@ xlim([5e2 10e3])
 title('CD16 initial distribution on NK cells (Hiraga Fig 2B)')
 
 
-
 %% Set the parameters from the parameter estimation table
 
 param_table =readtable('parameter_estimation_results.csv');
@@ -178,11 +177,11 @@ title('Histogram of initial CD16 distribution')
 xlim([0.5 20])
 set(gca,'FontSize',16, 'Xscale', 'log')
 
-
+%hist(CD16new,10.^[-1:.05:2]); set(gca,'Xscale','log')
 
 
 %% Alternative scaling: Rescale distributions logarithmically
-
+if 0
 % plot these as histograms 
 CD16lognew = exp(log(CD16samps) + log(goalmeanCD16./currmeanCD16samps));
 valuesCD16lognew = exp(log(valuesCD16) + log(goalmeanCD16./currmeanCD16samps));
@@ -240,6 +239,7 @@ set(gca,'FontSize',16, 'Xscale', 'log')
 xlabel('Scaled CD20 levels per cell')
 ylabel('Proportion of cells')
 title('Histogram of log-scaled CD20 distribution')
+end
 
 %% Run the loop that iterates through the CD16 and CD20 samples and runs
 % the forward adcx and reaction_ss model
