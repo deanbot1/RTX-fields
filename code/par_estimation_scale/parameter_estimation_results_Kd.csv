@@ -1,0 +1,23 @@
+paramnames,target,fit,value,xform,sens,Description,bestest
+tf_mol,tf_mol,0,100,log,0,hours to run molecular reaction model,100
+tf_et,tf_et,0,4,log,0,hours to run cellular interaction model,4
+nr_t_mol,nr_t_mol,0,8,log,0,# of timepoints to return from molecular reaction model,8
+nr_t_et,nr_t_et,0,10,log,0,# of timepoints to return from cellular interaction model,10
+T0,T0,0,1,log,0,initial number of target cells,1
+E0toT0,E0toT0,0,25,log,1,effector:target ratio,25
+Estar0,Estar0,0,0,log,1,initial number of depleted effector cells,0
+g_Z138,g,-1,0.026874477,log,0,tumor cell growth rate 1/hour (Z138 cell line),3.58512911933435e-11
+g_SUDHL4,g,-1,0.026874477,log,0,tumor cell growth rate 1/hour (SUDHL4 cell line),0.0752442511031954
+r,r,1,2.813069022,log,1,number of effector cells need to kill one target cell,2.42433631866889
+kexp,kexp,1,1.129546307,log,1,rate of recovery of effector cells from E* --> E 1/hours,0.950855831527979
+gamma,gamma,1,3.37e-06,log,1,slope relating complex formation to ADCC rate,36478.1643209706
+CD20_Z138,CD20,-1,20.58494921,log,1,number of CD20 molecules per target cell (Z138 cell line),2.6320001448231
+CD20_SUDHL4,CD20,-1,20.58494921,log,1,number of CD20 molecules per target cell (SU-DHL4 cell line),20.2844204738701
+CD16,CD16,1,9.883235532,log,1,number of CD16 molecules per effector cell (for V158 donor),4.69862949541774e-09
+RTX,RTX,0,53.7496,log,0,Rituximab concentration in nM,53.7496
+kon20,kon20,1,0.003880961,log,1,binding on rate of RTX to CD20,2.52363428535855e-17
+Kd20,Kd20,0,12.0589,log,1,dissociation constant Kd of RTX to CD20 in nM,12.0589
+kon16_V158,kon16,-1,64.71922448,log,1,binding on rate of RTX to CD16 (V158 SNP variant),144168992.738367
+kon16_F158,kon16,-1,64.71922448,log,1,binding on rate of RTX to CD16 (F158 SNP variant),4537.9946272164
+Kd16,Kd16,0,0.262,log,1,dissociation constant Kd of RTX to CD16 in nM,0.262
+gamma_perf,gamma_perf,0,1,log,0,amount of perforin on an Estar cell?,1

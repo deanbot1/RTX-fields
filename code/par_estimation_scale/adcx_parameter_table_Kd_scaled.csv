@@ -1,0 +1,23 @@
+paramnames,target,fit ,value,xform,sens,Description,
+tf_mol,tf_mol,0,100,log,0,hours to run molecular reaction model,
+tf_et,tf_et,0,4,log,0,hours to run cellular interaction model,
+nr_t_mol,nr_t_mol,0,8,log,0,# of timepoints to return from molecular reaction model,
+nr_t_et,nr_t_et,0,10,log,0,# of timepoints to return from cellular interaction model,
+T0,T0,0,1,log,0,initial number of target cells,
+E0toT0,E0toT0,0,25,log,1,effector:target ratio,
+Estar0,Estar0,0,0,log,1,initial number of depleted effector cells,
+g_Z138,g,-1,0.026874477,log,0,tumor cell growth rate 1/hour (Z138 cell line),
+g_SUDHL4,g,-1,0.026874477,log,0,tumor cell growth rate 1/hour (SUDHL4 cell line),
+r,r,1,2.813069022,log,1,number of effector cells need to kill one target cell,
+kexp,kexp,1,1.129546307,log,1,rate of recovery of effector cells from E* --> E 1/hours,
+gamma,gamma,1,3.37E-06,log,1,slope relating complex formation to ADCC rate,
+CD20_Z138,CD20,-1,3.23E+03,log,1,number of CD20 receptors per um^2 (Z138 cell line),Multiplied by 50*pi to reflect scaling to receptors/um^2 with cell diameter = 10 um
+CD20_SUDHL4,CD20,-1,3.23E+03,log,1,number of CD20 receptors per um^2 (SU-DHL4 cell line),
+CD16,CD16,1,1.55E+03,log,1,number of CD16 receptors per um^2 (for V158 donor),
+RTX,RTX,0,0.0971,log,0,Rituximab concentration in 1/um^2,
+kon20,kon20,1,2.1482,log,1,binding on rate of RTX to CD20 in um^2/hour,
+Kd20,Kd20,0,0.02189,log,1,dissociation constant Kd of RTX to CD20 in 1/um^2,Note we assumed h_synapse = 3 nm in this rescaling
+kon16_V158,kon16,-1,3.58E+04,log,1,binding on rate of RTX to CD16 (V158 SNP variant) in um^2/hour,
+kon16_F158,kon16,-1,3.58E+04,log,1,binding on rate of RTX to CD16 (F158 SNP variant) in um^2/hour,
+Kd16,Kd16,0,0.00047333,log,1,dissociation constant Kd of RTX to CD16 in 1/um^2,Note we assumed h_synapse = 3 nm in this rescaling
+gamma_perf,gamma_perf,0,1,log,0,amount of perforin on an Estar cell?,
