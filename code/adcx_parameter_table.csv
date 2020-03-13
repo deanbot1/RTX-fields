@@ -20,4 +20,5 @@ koff20,koff20,0,0.0468,log,1,binding off rate of RTX to CD20
 kon16_V158,kon16,-1,64.71922448,log,1,binding on rate of RTX to CD16 (V158 SNP variant)
 kon16_F158,kon16,-1,64.71922448,log,1,binding on rate of RTX to CD16 (F158 SNP variant)
 koff16,koff16,0,16.956,log,1,binding off rate of RTX to CD16
+h,h,0,1,log,0,height of synapse in nm?
 gamma_perf,gamma_perf,0,1,log,0,amount of perforin on an Estar cell?

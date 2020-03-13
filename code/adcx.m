@@ -1,6 +1,6 @@
 function [T,E,Estar,LDH,perf,CPX] = adcx(tf_mol,tf_et,nr_t_mol,nr_t_et,T0,E0toT0,Estar0,...
     g,r,kexp,gamma,...
-    CD20,CD16,RTX,kon20,koff20,kon16,koff16,gamma_perf)
+    CD20,CD16,RTX,kon20,koff20,kon16,koff16,h,gamma_perf)
 
 A0 = CD20;
 C0 = CD16;
@@ -8,7 +8,7 @@ R0 = RTX;
 
 % Run molecular rate equations to steady state
 %f_rate = reactions(A0,R0,C0,kon20,kon16,koff20,koff16,tf_mol,nr_t_mol);
-f_rate = SSadcc(RTX,CD16,CD20,kon16,koff16,kon20,koff20);
+f_rate = SSadcc(RTX,CD16,CD20,kon16,koff16,kon20,koff20,h);
 
 %% Effector-target code
 
