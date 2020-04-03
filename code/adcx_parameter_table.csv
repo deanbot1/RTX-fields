@@ -11,8 +11,8 @@ g_SUDHL4,g,-1,0.026874477,log,0,tumor cell growth rate 1/hour (SUDHL4 cell line)
 r,r,1,2.813069022,log,1,number of effector cells need to kill one target cell,N,,,
 kexp,kexp,1,1.129546307,log,1,rate of recovery of effector cells from E* --> E 1/hours,1/T,,,
 gamma,gamma,1,3.37E-06,log,1,slope relating complex formation to ADCC rate,n/a,,,
-CD20_Z138,CD20,-1,20.58494921,log,1,number of CD20 molecules per  um^2 (Z138 cell line),N/L^2,,,
-CD20_SUDHL4,CD20,-1,20.58494921,log,1,number of CD20 molecules  per um^2 (SU-DHL4 cell line),N/L^2,,,
+CD20_Z138,CD20,-1,390,log,1,number of CD20 molecules per  um^2 (Z138 cell line),N/L^2,,,
+CD20_SUDHL4,CD20,-1,390,log,1,number of CD20 molecules  per um^2 (SU-DHL4 cell line),N/L^2,,,
 CD16,CD16,1,9.883235532,log,1,number of CD16 molecules per um^2,N/L^2,,,
 RTX,RTX,0,53.7496,log,0,Rituximab concentration in nM,N/L^3 ,,,
 kon20,kon20,1,0.0504,log,1,binding on rate of RTX to CD20,L^3/NT,0.0504,1/nM-hr,"Front. Immunol., 24 April 2017, doi.org/10.3389/fimmu.2017.00455"
