@@ -16,11 +16,76 @@
 
 %% clear the workspace and close all figure windows
 clear all; close all
-parameter_filename = 'adcx_parameter_table.csv';
-par = readtable(parameter_filename);
-disp(par);
+parameter_filename = 'adcx_parameters_experiments.csv';
+Tbig = readtable(parameter_filename);
 
-defpmap = default_pmap(par);
+ires = find(strcmp(Tbig.name,'RESERVED'));
+Tpar = Tbig(1:ires-1,:);
+Tpar.default = arrayfun(@(s)str2num(s{1}),Tpar.default);
+
+vnames = Tpar.Properties.VariableNames;
+EE = arrayfun(@(s)sscanf(s{1},'E%d_*'),vnames,'UniformOutput',false);
+EI = find(arrayfun(@(s)~isempty(s{1}),EE));
+Nexp = length(EI);
+
+Texp = Tbig(ires+1:end,:);
+Texp.Properties.RowNames = Texp.name;
+
+for j = 1:Nexp
+	i = EI(j);
+	ename = vnames{i};
+	expt(j).name = ename;
+	deffun = @(rname)ifelseval(isempty(Texp{rname,ename}{1}),Texp{rname,'default'},Texp{rname,ename});
+	expt(j).Xname = deffun('XNAME');
+	expt(j).Ynames = {deffun('YNAME')};
+	datafile = fullfile(deffun('DATAPATH'),deffun('DATAFILE'));
+	dat = readtable(datafile);
+	expt(j).xval = dat.(deffun('XHEADER'));
+	expt(j).obs = dat.(deffun('YHEADER'));
+	expt(j).model = str2func(deffun('MODEL'));
+	expt(j).weight = str2num(deffun('WEIGHT'));
+end
+
+% now build par in the older way and define defpmap? No, may want to bypass
+% old way, which involves parsing strings...or maybe yes... ugh
+clear pxform
+clear pinit
+
+for j = 1:Nexp
+	clear pmap
+	ej = expt(j);
+	for i = 1:height(Tpar)
+		pname = Tpar.name{i};
+		if Tpar.cv(i)==0
+			% it's fixed, no fitting
+			pmap.(pname) = @(pfit)ifelseval(isempty(Tpar.(ej.name){i}),Tpar.default(i),str2num(Tpar.(ej.name){i})); % it's just a numeric value, fixed
+			pinit.(pname) = Tpar.default(i);
+			pxform.(pname) = Tpar.xform{i};
+		elseif isempty(Tpar.(ej.name){i}) % then it's fit "globally' ie one value across all expts
+			pmap.(pname) = @(pfit)pfit.(pname);
+			pinit.(pname) = Tpar.default(i);
+			pxform.(pname) = Tpar.xform{i};
+		else
+			if isempty(str2num(Tpar.(ej.name){i}))
+				% then it's a string and needs to be parsed out somehow
+				tname = [pname '_' Tpar.(ej.name){i}];
+				pmap.(pname) = @(pfit)pfit.(tname);
+				pinit.(tname) = Tpar.default(i);
+				pxform.(tname) = Tpar.xform{i};
+			else
+				% then it's a value and it's fixed somehow
+				pmap.(pname) = @(pfit)str2num(Tpar.(ej.name){i});
+				pinit.(pname) = NaN; % Tpar.default(i); % hopefully this doesn't get used anywhere, set to NaN so that we'll get an error if it does
+				pxform.(pname) = Tpar.xform{i};
+			end
+		end
+	end
+	expt(j).pmap = pmap;
+end
+
+
+
+%defpmap = default_pmap(par);
 
 
 
@@ -38,57 +103,57 @@ defpmap = default_pmap(par);
 % now we generate the experiment structure
 % which in real life would be done by loading in experimental observations,
 % not using the model to simulate the data, but this is a demo
-data_path = '../data/';
-data_filenames = {'Herter_4A_V158onZ138.csv','Herter_4B_V158onSU-DHL4.csv'...
-    'Herter_4C_F158onZ138.csv','Herter_4D_F158onSU-DHL4.csv', ...
-    'Herter_4E_V158onZ138_High_Concentration.csv'};
-Ne = length(data_filenames); % number of distinct experiments to fit to
+% data_path = '../data/';
+% data_filenames = {'Herter_4A_V158onZ138.csv','Herter_4B_V158onSU-DHL4.csv'...
+%     'Herter_4C_F158onZ138.csv','Herter_4D_F158onSU-DHL4.csv', ...
+%     'Herter_4E_V158onZ138_High_Concentration.csv'};
+% Ne = length(data_filenames); % number of distinct experiments to fit to
 %exptnames = {'exptA','exptC','exptZ'}; % labels for experiments
-clear pdef
-pj = 0; % p vector index thingy
-for i = 1:Ne
-    temp = readtable([data_path data_filenames{i}]);
-	expt(i).name = strrep(data_filenames{i}(1:end-4),'-','_');
-	iscore = strfind(expt(i).name,'_'); iscore = iscore(2);
-	expt(i).name = {expt(i).name(1:iscore-1),expt(i).name(iscore+1:end)};
-	expt(i).Ynames = {'%ADCC'}; % these can be different for each experiment but it's good practice to have all of them for all experiments, if possible. The names are matched for parameter estimation, so don't make any spelling variations!
-	expt(i).Xname = '[RTX]';
-	expt(i).model = @(pstruct,R_conc)adcx_wrapper(pstruct,R_conc);
-    expt(i).xval = temp.Var1;
-	expt(i).obs = temp.Var2;
-	expt(i).pmap = defpmap;
-	
-	% this is where the magic happens == mapping of nonunique parameters to
-	% parameters
-	ion = strfind(expt(i).name{2},'on'); ion = ion(1); % first occurence
-	switch expt(i).name{2}(ion+2:ion+3)
-		case 'Z1'
-			cellline = 'Z138';
-		case 'SU'
-			cellline = 'SUDHL4';
-	end
-	gname = ['g_' cellline];
-	expt(i).pmap.g = @(pfit)pfit.(gname);
-	cd20name = ['CD20_' cellline];
-	expt(i).pmap.CD20 = @(pfit)pfit.(cd20name);
-	CD16SNP = expt(i).name{2}(ion-4:ion-1);
-	CD16name = ['kon16_' CD16SNP];
-	expt(i).pmap.kon16 = @(pfit)pfit.(CD16name);
-% 	CD16name = ['CD16_' CD16SNP];
-% 	expt(i).pmap.CD16 = @(pfit)pfit.(CD16name);
-end
+% clear pdef
+% pj = 0; % p vector index thingy
+% for i = 1:Ne
+%     temp = readtable([data_path data_filenames{i}]);
+% 	expt(i).name = strrep(data_filenames{i}(1:end-4),'-','_');
+% 	iscore = strfind(expt(i).name,'_'); iscore = iscore(2);
+% 	expt(i).name = {expt(i).name(1:iscore-1),expt(i).name(iscore+1:end)};
+% 	expt(i).Ynames = {'%ADCC'}; % these can be different for each experiment but it's good practice to have all of them for all experiments, if possible. The names are matched for parameter estimation, so don't make any spelling variations!
+% 	expt(i).Xname = '[RTX]';
+% 	expt(i).model = @(pstruct,R_conc)adcx_wrapper(pstruct,R_conc);
+%     expt(i).xval = temp.Var1;
+% 	expt(i).obs = temp.Var2;
+% 	expt(i).pmap = defpmap;
+% 	
+% 	% this is where the magic happens == mapping of nonunique parameters to
+% 	% parameters
+% 	ion = strfind(expt(i).name{2},'on'); ion = ion(1); % first occurence
+% 	switch expt(i).name{2}(ion+2:ion+3)
+% 		case 'Z1'
+% 			cellline = 'Z138';
+% 		case 'SU'
+% 			cellline = 'SUDHL4';
+% 	end
+% 	gname = ['g_' cellline];
+% 	expt(i).pmap.g = @(pfit)pfit.(gname);
+% 	cd20name = ['CD20_' cellline];
+% 	expt(i).pmap.CD20 = @(pfit)pfit.(cd20name);
+% 	CD16SNP = expt(i).name{2}(ion-4:ion-1);
+% 	CD16name = ['kon16_' CD16SNP];
+% 	expt(i).pmap.kon16 = @(pfit)pfit.(CD16name);
+% % 	CD16name = ['CD16_' CD16SNP];
+% % 	expt(i).pmap.CD16 = @(pfit)pfit.(CD16name);
+% end
+% 
+% % now we loop through the expt structure and build our pfit vector
+% % structure mapping
 
-% now we loop through the expt structure and build our pfit vector
-% structure mapping
-
-k = 0;
-for j = 1:height(par)
-	if par.fit(j) ~= 0
-		k = k+1;
-		pinit.(par.paramnames{j}) = par.value(j);
-		pxform.(par.paramnames{j}) = par.xform{j};
-	end
-end
+% k = 0;
+% for j = 1:height(par)
+% 	if par.fit(j) ~= 0
+% 		k = k+1;
+% 		pinit.(par.paramnames{j}) = par.value(j);
+% 		pxform.(par.paramnames{j}) = par.xform{j};
+% 	end
+% end
 
 figure('Position',[239   558   990   420]);
 xspan = 10.^[-2:0.25:6]';
@@ -118,7 +183,7 @@ figure('Position',[239   558   990   420]);
 xspan = 10.^[-2:0.25:6]';
 plot_expt2(expt,pbest,xspan,'Xscale','log','Ylim',[-10 100],'Xtick',10.^[-2:2:6]);
 
-%% create a summary table of results
+%% create a summary table of results // need to fix this...
 par.Properties.RowNames = par.paramnames;
 par.bestest = par.value;
 fnames = fieldnames(pbest);
