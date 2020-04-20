@@ -6,6 +6,7 @@
 clear all; close all
 parameter_filename = 'adcx_parameters_experiments.csv'; % special parameter and experimental settings filename
 results_fileroot = 'adcx_parameter_results';
+bweight = 100; % how much to weight bayesian penalty relative to chi squared error function
 
 
 %% clear the workspace and close all figure windows
@@ -52,9 +53,9 @@ for j = 1:Nexp
 		if Tpar.cv(i) < eps
 			% it's fixed, no fitting
 			pmap.(pname) = @(pfit)ifelseval(isempty(Tpar.(ej.name){i}),Tpar.default(i),str2num(Tpar.(ej.name){i})); % it's just a numeric value, fixed
-			pinit.(pname) = Tpar.default(i);
-			pxform.(pname) = Tpar.xform{i};
-			cvs.(pname) = Tpar.cv(i);
+%			pinit.(pname) = Tpar.default(i);
+%			pxform.(pname) = Tpar.xform{i};
+%			cvs.(pname) = Tpar.cv(i);
 		elseif isempty(Tpar.(ej.name){i}) % then it's fit "globally' ie one value across all expts
 			pmap.(pname) = @(pfit)pfit.(pname);
 			pinit.(pname) = Tpar.default(i);
@@ -71,9 +72,9 @@ for j = 1:Nexp
 			else
 				% then it's a value and it's fixed somehow
 				pmap.(pname) = @(pfit)str2num(Tpar.(ej.name){i}); % fixed to # in expt
-				pinit.(pname) = feval(pmap.(pname)); % hopefully this doesn't get used anywhere
-				pxform.(pname) = Tpar.xform{i};
-				cvs.(pname) = Tpar.cv(i);
+%				pinit.(pname) = feval(pmap.(pname)); % hopefully this doesn't get used anywhere
+%				pxform.(pname) = Tpar.xform{i};
+%				cvs.(pname) = Tpar.cv(i);
 			end
 		end
 	end
@@ -102,12 +103,12 @@ cvec = cvstruct2vec(cvs,pinit,pxform);
 ii = cvec > eps & cvec < Inf;
 
 %ofun = @(p)(objfun2(p,expt,pxform,errfun)); % single parameter vector objective function in transformed space
-ofun = @(p)objfun2(p,expt,pxform,errfun) + sum(((p(ii)-pvec0(ii))./cvec(ii)).^2); % same objective function + bayesian penalty
+ofun = @(p)objfun2(p,expt,pxform,errfun) + bweight*sum(((p(ii)-pvec0(ii))./cvec(ii)).^2); % same objective function + bayesian penalty
 
 
 % run fminsearch local optimizer using best guess from monte
 % use at least 1000 maxiter when running a single experiment...
-options = optimset('maxiter',500,'maxfunevals',10000,'Display','iter'); % set the options for your favorite optimizer
+options = optimset('maxiter',5000,'maxfunevals',20000,'Display','iter'); % set the options for your favorite optimizer
 pbigbest = fminsearch(ofun,pvec0,options); % run your favorite optimizer
 %pbigbest = fminsearch(ofun,pbigbest,options); % run your favorite optimizer again...
 % save pbest
@@ -139,18 +140,42 @@ writetable(Tout,[results_fileroot,'_fat.csv']); % save to disk
 disp(sprintf('%s written to: %s','Tout',[results_fileroot,'_fat.csv']));
 
 %% save skinny results table to disk too
-clear name cv initial final
-name = sort(fieldnames(pbest));
+clear name xform cv cvxf initial final
+[name,is] = sort(fieldnames(pbest));
 for k = 1:length(name)
+	xform = pxform.(name{k});
 	cv(k,1) = cvs.(name{k});
+	cvxf(k,1) = cvec(is(k));
 	initial(k,1) = pinit.(name{k});
 	final(k,1) = pbest.(name{k});
 end
 
-Tskinny = table(name,cv,initial,final);
+Tskinny = table(name,cv,cvxf,initial,final);
 disp(Tskinny)
 writetable(Tskinny,[results_fileroot,'_skinny.csv']); % save to disk
 disp(sprintf('%s written to: %s','Tskinny',[results_fileroot,'_skinny.csv']));
 
 
-
+%%  make a plot of Tskinny 
+figure;
+Nfit = height(Tskinny);
+semilogx(Tskinny.final./Tskinny.initial,1:Nfit,'ro','MarkerFaceColor','r'); hold on
+plot(ones(1,Nfit),1:Nfit,'ko');
+hold on
+set(gca,'YDir','reverse','YTick',1:Nfit,'YTickLabel',Tskinny.name);
+plot([1 1],[0.5 Nfit+0.5],'k:');
+for j = 1:Nfit
+	if Tskinny.cv(j) < Inf
+		plot([1+Tskinny.cv(j) 1./(1+Tskinny.cv(j))],[j j],'k-');
+	else
+		xlim = get(gca,'Xlim');
+		plot(xlim,[j j],'k-');
+		plot(min(xlim),j,'k<','MarkerFaceColor','k');
+		plot(max(xlim),j,'k>','MarkerFaceColor','k');
+	end
+	text(Tskinny.final(j)/Tskinny.initial(j),j,sprintf('%3.3g',Tskinny.final(j)),'Color','r','VerticalAlignment','Bottom','HorizontalAlignment','Center');
+	text(1,j,sprintf('%3.3g',Tskinny.initial(j)),'Color','k','VerticalAlignment','Top','HorizontalAlignment','Center');
+end
+set(gca,'TickLabelInterpreter','none','Xlim',xlim)
+xlabel('Final Estimates (red) / Initial Estimates');
+title(sprintf('Estimation results, bayes weight = %d',bweight));
