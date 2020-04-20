@@ -1,22 +1,15 @@
 %% parameter_estimation.m estimates ADCC parameters...
-% rewriting this...
-% Additionally this toolbox allows user to specify a transformation for
-% each parameter: 
-% 
-% *For a strictly positive parameter, 'log' is recommended
-% *For a fraction between 0 and 1, 'logit' is recommended
-% *For a real number, just use 'identity' or any other string that doesn't
-% match the two supported strings, and it will be ignored.
-% 
-% lower and upper bounds are not explicitly handled by this package, maybe
-% some other day, but they are enforced as a consequence of the
-% transformation chosen above
+%  
 %
 % D. Bottino, Takeda Pharmaceuticals
 
-%% clear the workspace and close all figure windows
 clear all; close all
-parameter_filename = 'adcx_parameters_experiments.csv';
+parameter_filename = 'adcx_parameters_experiments.csv'; % special parameter and experimental settings filename
+results_fileroot = 'adcx_parameter_results';
+
+
+%% clear the workspace and close all figure windows
+
 Tbig = readtable(parameter_filename);
 
 ires = find(strcmp(Tbig.name,'RESERVED'));
@@ -49,22 +42,24 @@ end
 % now build par in the older way and define defpmap? No, may want to bypass
 % old way, which involves parsing strings...or maybe yes... ugh
 clear pxform
-clear pinit
+clear pinit cvs % initial parameters and CV structure
 
 for j = 1:Nexp
 	clear pmap
 	ej = expt(j);
 	for i = 1:height(Tpar)
 		pname = Tpar.name{i};
-		if Tpar.cv(i)==0
+		if Tpar.cv(i) < eps
 			% it's fixed, no fitting
 			pmap.(pname) = @(pfit)ifelseval(isempty(Tpar.(ej.name){i}),Tpar.default(i),str2num(Tpar.(ej.name){i})); % it's just a numeric value, fixed
 			pinit.(pname) = Tpar.default(i);
 			pxform.(pname) = Tpar.xform{i};
+			cvs.(pname) = Tpar.cv(i);
 		elseif isempty(Tpar.(ej.name){i}) % then it's fit "globally' ie one value across all expts
 			pmap.(pname) = @(pfit)pfit.(pname);
 			pinit.(pname) = Tpar.default(i);
 			pxform.(pname) = Tpar.xform{i};
+			cvs.(pname) = Tpar.cv(i);
 		else
 			if isempty(str2num(Tpar.(ej.name){i}))
 				% then it's a string and needs to be parsed out somehow
@@ -72,11 +67,13 @@ for j = 1:Nexp
 				pmap.(pname) = @(pfit)pfit.(tname);
 				pinit.(tname) = Tpar.default(i);
 				pxform.(tname) = Tpar.xform{i};
+				cvs.(tname) = Tpar.cv(i);
 			else
 				% then it's a value and it's fixed somehow
-				pmap.(pname) = @(pfit)str2num(Tpar.(ej.name){i});
-				pinit.(pname) = NaN; % Tpar.default(i); % hopefully this doesn't get used anywhere, set to NaN so that we'll get an error if it does
+				pmap.(pname) = @(pfit)str2num(Tpar.(ej.name){i}); % fixed to # in expt
+				pinit.(pname) = feval(pmap.(pname)); % hopefully this doesn't get used anywhere
 				pxform.(pname) = Tpar.xform{i};
+				cvs.(pname) = Tpar.cv(i);
 			end
 		end
 	end
@@ -89,71 +86,7 @@ end
 
 
 
-%% boh
-% specify the model. 
-% a model is defined as a function taking in parameter and dependent
-% variable values (say a time vector) and spitting out Y values for each
-% dependent variable value. The model can either be an anonymous function
-% or it can be its own standalone function. In this case I'm using a model
-% that takes in a parameter STRUCTURE with fields that are parameter names.
-% If your model already expects a parameter column vector and 'knows' the
-% order of the parameters, you can do it that way too in which case you
-% don't need the v2s function above. 
-
-% now we generate the experiment structure
-% which in real life would be done by loading in experimental observations,
-% not using the model to simulate the data, but this is a demo
-% data_path = '../data/';
-% data_filenames = {'Herter_4A_V158onZ138.csv','Herter_4B_V158onSU-DHL4.csv'...
-%     'Herter_4C_F158onZ138.csv','Herter_4D_F158onSU-DHL4.csv', ...
-%     'Herter_4E_V158onZ138_High_Concentration.csv'};
-% Ne = length(data_filenames); % number of distinct experiments to fit to
-%exptnames = {'exptA','exptC','exptZ'}; % labels for experiments
-% clear pdef
-% pj = 0; % p vector index thingy
-% for i = 1:Ne
-%     temp = readtable([data_path data_filenames{i}]);
-% 	expt(i).name = strrep(data_filenames{i}(1:end-4),'-','_');
-% 	iscore = strfind(expt(i).name,'_'); iscore = iscore(2);
-% 	expt(i).name = {expt(i).name(1:iscore-1),expt(i).name(iscore+1:end)};
-% 	expt(i).Ynames = {'%ADCC'}; % these can be different for each experiment but it's good practice to have all of them for all experiments, if possible. The names are matched for parameter estimation, so don't make any spelling variations!
-% 	expt(i).Xname = '[RTX]';
-% 	expt(i).model = @(pstruct,R_conc)adcx_wrapper(pstruct,R_conc);
-%     expt(i).xval = temp.Var1;
-% 	expt(i).obs = temp.Var2;
-% 	expt(i).pmap = defpmap;
-% 	
-% 	% this is where the magic happens == mapping of nonunique parameters to
-% 	% parameters
-% 	ion = strfind(expt(i).name{2},'on'); ion = ion(1); % first occurence
-% 	switch expt(i).name{2}(ion+2:ion+3)
-% 		case 'Z1'
-% 			cellline = 'Z138';
-% 		case 'SU'
-% 			cellline = 'SUDHL4';
-% 	end
-% 	gname = ['g_' cellline];
-% 	expt(i).pmap.g = @(pfit)pfit.(gname);
-% 	cd20name = ['CD20_' cellline];
-% 	expt(i).pmap.CD20 = @(pfit)pfit.(cd20name);
-% 	CD16SNP = expt(i).name{2}(ion-4:ion-1);
-% 	CD16name = ['kon16_' CD16SNP];
-% 	expt(i).pmap.kon16 = @(pfit)pfit.(CD16name);
-% % 	CD16name = ['CD16_' CD16SNP];
-% % 	expt(i).pmap.CD16 = @(pfit)pfit.(CD16name);
-% end
-% 
-% % now we loop through the expt structure and build our pfit vector
-% % structure mapping
-
-% k = 0;
-% for j = 1:height(par)
-% 	if par.fit(j) ~= 0
-% 		k = k+1;
-% 		pinit.(par.paramnames{j}) = par.value(j);
-% 		pxform.(par.paramnames{j}) = par.xform{j};
-% 	end
-% end
+%% plot goodness of fit of initial guesses in pinit
 
 figure('Position',[239   558   990   420]);
 xspan = 10.^[-2:0.25:6]';
@@ -164,12 +97,17 @@ plot_expt2(expt,pinit,xspan,'Xscale','log','Ylim',[-10 100],'Xtick',10.^[-2:2:6]
 
 errfun = @(Ypred,Yobs)sum(sum((Ypred(~isnan(Yobs))-Yobs(~isnan(Yobs))).^2)); % sum squared error function ignoring NaNs
 %[pbig0,prow,pcol] = psquash(fxf(par.value),par.fit,Ne); % for initial guesses we use value field in the par table
-ofun = @(p)(objfun2(p,expt,pxform,errfun)); % single parameter vector objective function in transformed space
 pvec0 = pstruct2vec(pinit,pxform);
+cvec = cvstruct2vec(cvs,pinit,pxform);
+ii = cvec > eps & cvec < Inf;
+
+%ofun = @(p)(objfun2(p,expt,pxform,errfun)); % single parameter vector objective function in transformed space
+ofun = @(p)objfun2(p,expt,pxform,errfun) + sum(((p(ii)-pvec0(ii))./cvec(ii)).^2); % same objective function + bayesian penalty
+
 
 % run fminsearch local optimizer using best guess from monte
 % use at least 1000 maxiter when running a single experiment...
-options = optimset('maxiter',2500,'maxfunevals',10000,'Display','iter'); % set the options for your favorite optimizer
+options = optimset('maxiter',500,'maxfunevals',10000,'Display','iter'); % set the options for your favorite optimizer
 pbigbest = fminsearch(ofun,pvec0,options); % run your favorite optimizer
 %pbigbest = fminsearch(ofun,pbigbest,options); % run your favorite optimizer again...
 % save pbest
@@ -183,30 +121,36 @@ figure('Position',[239   558   990   420]);
 xspan = 10.^[-2:0.25:6]';
 plot_expt2(expt,pbest,xspan,'Xscale','log','Ylim',[-10 100],'Xtick',10.^[-2:2:6]);
 
-%% create a summary table of results // need to fix this...
-par.Properties.RowNames = par.paramnames;
-par.bestest = par.value;
-fnames = fieldnames(pbest);
-for j = 1:length(fnames)
-	par{fnames{j},'bestest'} = pbest.(fnames{j});
-end
-disp(par);
 
-writetable(par,'parameter_estimation_results.csv')
-
-%% if you want to read in the results table and skip param est just skip the last three blocks and jump to here
-
-parfin = readtable('parameter_estimation_results.csv');
-
-k = 0;
-for j = 1:height(parfin)
-	if parfin.fit(j) ~= 0
-		k = k+1;
-		pfinal.(parfin.paramnames{j}) = parfin.bestest(j);
+%% make a fat results table
+Tout = Tpar;
+Npar = length(Tout.name);
+for j = 1:Nexp
+	clear ppp
+	for k = 1:Npar
+		pname = Tout.name{k};
+		ppp(k,1) = feval(expt(j).pmap.(pname),pbest);
 	end
+	Tout.(expt(j).name) = ppp;
 end
 
-figure('Position',[239   558   990   420]);
-xspan = 10.^[-2:0.25:6]';
-plot_expt2(expt,pfinal,xspan,'Xscale','log','Ylim',[-10 100],'Xtick',10.^[-2:2:6]);
+disp(Tout)
+writetable(Tout,[results_fileroot,'_fat.csv']); % save to disk
+disp(sprintf('%s written to: %s','Tout',[results_fileroot,'_fat.csv']));
+
+%% save skinny results table to disk too
+clear name cv initial final
+name = sort(fieldnames(pbest));
+for k = 1:length(name)
+	cv(k,1) = cvs.(name{k});
+	initial(k,1) = pinit.(name{k});
+	final(k,1) = pbest.(name{k});
+end
+
+Tskinny = table(name,cv,initial,final);
+disp(Tskinny)
+writetable(Tskinny,[results_fileroot,'_skinny.csv']); % save to disk
+disp(sprintf('%s written to: %s','Tskinny',[results_fileroot,'_skinny.csv']));
+
+
 

@@ -9,3 +9,4 @@ code/localprefs/
 
 # Compiled MEX binaries (all platforms)
 *.mex*
+code/matlab.mat
