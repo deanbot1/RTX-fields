@@ -45,6 +45,8 @@ figure('Position',[239   558   990   420]);
 xspan = 10.^[-2:0.25:6]';
 plot_expt2(expt,pbest,xspan,'Xscale','log','Ylim',[-10 100],'Xtick',10.^[-2:2:6]);
 
+%% Generate outputs for identifiability analysis
+save('pbest', 'pbest')
 
 %% make a fat results table
 
