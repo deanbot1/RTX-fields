@@ -32,7 +32,7 @@ ndata = length(residuals);
 %% Run a loop to creat and fit synthetic data
 nruns = 1000;
 rand_index_matrix  = randi([1 ndata], [ndata,nruns]);% store
-for i = 1:100
+for i = 1:20
     % create synthetic data by:
     % randomly sample with replacement from residual list and add to the
     % model fit from original pbest
@@ -93,11 +93,11 @@ set(gca,'FontSize',20,'LineWidth',1.5)
 paramnames = fieldnames(pbest);
 figure;
 [S,AX,BigAx,H,HAx] = plotmatrix(pbigboot');
-title(BigAx,'A Comparison of Parameter Estimates')
-
-ylabel(AX(1,1),paramnames{1})
-xlabel(AX(9,1),paramnames{1})
-
+title(BigAx,'A Comparison of Parameter Estimates ')
+for i = 1:length(paramnames)
+ylabel(AX(i,1),paramnames{i})
+xlabel(AX(9,i),paramnames{i})
+end
 
 %% get back original expt structure with real data obs
 [expt,pinit,pxform,cvs] = parse_par_expt(Tpar,Texp);
