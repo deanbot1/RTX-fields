@@ -31,8 +31,11 @@ ndata = length(residuals);
 
 %% Run a loop to creat and fit synthetic data
 nruns = 1000;
+nstarts = 1;
+bweight = 0;
 rand_index_matrix  = randi([1 ndata], [ndata,nruns]);% store
-for i = 1:20
+tic
+for i = 1%:20
     % create synthetic data by:
     % randomly sample with replacement from residual list and add to the
     % model fit from original pbest
@@ -59,13 +62,21 @@ for i = 1:20
     % run fminsearch local optimizer
     % use at least 1000 maxiter when running a single experiment...
     
-    options = optimset('maxiter',5000,'maxfunevals',20000,'Display','iter'); % set the options for your favorite optimizer
-    pbigbooti = fminsearch(ofun,pvec0,options); % run your favorite optimizer
+    options = optimset('maxiter',5000,'maxfunevals',20000); % set the options for your favorite optimizer
+    % multistart optimization
+    fval = [];
+    pbootj = zeros(length(pvec0), nstarts);
+    for j = 1:nstarts
+        pvec0j=normrnd(pstruct2vec(pbest,pxform), 2*pstruct2vec(pbest,pxform));
+        % multistart
+        [pbootj(:,j), fval(j)] = fminsearch(ofun,pvec0,options);
+    end
+    [ofunval, ind] = min(fval);
+    pbooti = pbootj(:,ind);
     
-    %store bootstrapped parameter estimates
-    pboot = pvec2struct(pbigbooti,pxform);
-    
-    pbigboot(:,i) = pstruct2vec(pboot,pxform); % gather full model inputs as vector
+    %store bootstrapped parameter estimates (in log space)
+    pbigboot(:,i) = pbooti;
+
     % For pbest, generate model  
     Ymodboot = modelfunskinny(pbigboot(:,i),expt, pxform);
 
@@ -73,7 +84,7 @@ for i = 1:20
     
 
 end
-
+toc
 %% Plot one example to make sure the fitting is working
 figure;
 plot(1:1:ndata, Ysim, 'r*')
