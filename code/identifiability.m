@@ -35,7 +35,7 @@ nstarts = 1;
 bweight = 0;
 rand_index_matrix  = randi([1 ndata], [ndata,nruns]);% store
 tic
-for i = 1%:20
+for i = 1:20
     % create synthetic data by:
     % randomly sample with replacement from residual list and add to the
     % model fit from original pbest
@@ -112,4 +112,38 @@ end
 
 %% get back original expt structure with real data obs
 [expt,pinit,pxform,cvs] = parse_par_expt(Tpar,Texp);
+%% Monte Carlo
+
+% 99% CI from bootstrapping
+phatranges =prctile(pbigboot,[0.5,99.5], 1);
+nparams = length(pbest);
+% Uniform sampling from k-dimensional hyper-rectangle
+randmat = rand(nparams, nruns);
+fvalbest = ofun(pbig);
+% Start by setting the pbest = pbest from 
+pbestMC = pbig;
+
+for i = 1:nruns
+    phati = randmat(:,i).*(phatranges(:,2)-phatranges(:,1)) + phatranges(:,1);
+    
+    pbigMC(:,i) =phati;
+    
+    fval(i) =ofun(phati);
+    if fval(i)< fvalbest
+        fvalbest = fval(i);
+        pbestMC = phati;
+    end
+end
+% Find z-scores
+DO = [68, 90, 95]; 
+% Find the parameter sets that satisfy:
+iset = fval<=fvalbest + DO(1)
+
+%Plot using plotmatrix
+
+% Plot pbest fit
+
+
+
+
 
