@@ -3,18 +3,14 @@
 clear
 close all
 
-% % data from 25 runs each with 10% standard deviation and 5 starts
-% load('bootstrap4.mat')
-% pbigbootall = pbigboot;
-% load('bootstrap5.mat')
-% pbigbootall = [pbigbootall pbigboot];
+% % data from 100 runs (each) with 10% standard deviation and 1 start
+% pbigbootall = [];
+% for index = 1:5
+%     load(['results_bootstrap/bootstrap' num2str(index) '.mat'])
+%     pbigbootall = [pbigbootall pbigboot];
+% end
 
-% data from 100 runs (each) with 10% standard deviation and 1 start
-pbigbootall = [];
-for index = 1:5
-    load(['results_bootstrap/bootstrap' num2str(index) '.mat'])
-    pbigbootall = [pbigbootall pbigboot];
-end
+load('bootstrap_500runs.mat')
 
 %% Plot one example to make sure the fitting is working
 figure()
