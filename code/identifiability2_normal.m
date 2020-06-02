@@ -1,12 +1,14 @@
 %identifiability.m for ADCX model parameters
 
 % Load in parameter 
-clear all; close all; clc
+clear all; close all; 
 rng('shuffle')
 parameter_filename = 'adcx_parameters_experiments.csv'; % special parameter and experimental settings filename
 results_fileroot = 'adcx_parameter_results';
 pbest = load('pbest.mat');
 pbest = pbest.pbest;
+
+index = 1;
 
 bweight = 100; % how much to weight bayesian penalty relative to chi squared error function
 
@@ -23,7 +25,7 @@ pbig = pstruct2vec(pbest,pxform); % gather full model inputs as vector
 % For pbest, generate model  
 Ymod = modelfunskinny(pbig,expt, pxform);
 for j = 1:Ne
-Yexpt = vertcat(Yexpt, expt(j).obs);
+    Yexpt = vertcat(Yexpt, expt(j).obs);
 end
 % residuals as single vector
 residuals = Ymod-Yexpt;
@@ -31,14 +33,15 @@ ndata = length(residuals);
 
 
 %% Run a loop to creat and fit synthetic data
-nruns   = 1;
-nstarts = 5;
+nruns   = 5;
+nstarts = 1;
 bweight = 0;
-rand_index_matrix  = randi([1 ndata], [ndata,nruns]);% store
+rand_index_matrix  = randi([1 ndata], [ndata,nruns]); % store
 %%
 tic
 pbestlog    = pstruct2vec(pbest,pxform);
 pbestactual = exp(pbestlog);
+pvec0logall = zeros(length(pbestlog),nruns);
 pbigboot    = zeros(length(pbestlog),nruns);
 for i = 1:nruns
     % create synthetic data by:
@@ -48,53 +51,39 @@ for i = 1:nruns
     Ysim = Ymod + residuals(rand_int);
     
     % Put simulated data  temporarily into expt.obs
-    m=1; %counter for place along 
+    m = 1; % counter for place along 
     for k = 1:length(expt)
         nobs = length(expt(k).obs);
-        expt(k).obs= Ysim(m:m+nobs-1);
-        m=m+nobs;
+        expt(k).obs = Ysim(m:m+nobs-1);
+        m    = m + nobs;
     end   
       
     % fit the synthetic data: (perhaps make this a function)
     errfun = @(Ypred,Yobs)sum(sum((Ypred(~isnan(Yobs))-Yobs(~isnan(Yobs))).^2)); % sum squared error function ignoring NaNs
-    pvec0 = pstruct2vec(pinit,pxform);
-    cvec = cvstruct2vec(cvs,pinit,pxform);
-    ii = cvec > eps & cvec < Inf;  
-    ofun = @(p)objfun2(p,expt,pxform,errfun) + bweight*sum(((p(ii)-pvec0(ii))./cvec(ii)).^2); % same objective function + bayesian penalty
+    pvec0  = pstruct2vec(pinit,pxform);
+    cvec   = cvstruct2vec(cvs,pinit,pxform);
+    ii     = cvec > eps & cvec < Inf;  
+    ofun   = @(p)objfun2(p,expt,pxform,errfun) + bweight*sum(((p(ii)-pvec0(ii))./cvec(ii)).^2); % same objective function + bayesian penalty
     
     % run fminsearch local optimizer
     % use at least 1000 maxiter when running a single experiment... 
-    options = optimset('maxiter',5000,'maxfunevals',20000); % set the options for your favorite optimizer
-    % multistart optimization
-    pbootj   = zeros(length(pvec0), nstarts);
-    pvec0all = zeros(length(pvec0), nstarts);
-    fval     = zeros(1,nstarts);
-    % Create matrix of initial conditions for a multistart by drawing from
-    % lognormal distribution
-    for l = 1:length(pbestlog)
-        pvec0all(l,:) = normrnd(pbestactual(l),0.5*pbestactual(l),1,nstarts);
-    end
-    % multistart
-    for j = 1:nstarts
-        pvec0j = log(pvec0all(:,j));
-        [pbootj(:,j),fval(j)] = fminsearch(ofun,pvec0j,options);
-    end
-    [ofunval, ind] = min(fval);
-    pbooti = pbootj(:,ind);
+    options  = optimset('maxiter',10000,'maxfunevals',20000); % set the options for your favorite optimizer
+    % Create matrix of initial conditions by drawing from normal distribution
+    pvec0all = normrnd(pbestactual,0.1*pbestactual);
+    pvec0log = log(pvec0all);
+    [pbooti,fval]    = fminsearch(ofun,pvec0log,options);
+    pvec0logall(:,i) = pvec0log;
     
-    %store bootstrapped parameter estimates (in log space)
+    % Store bootstrapped parameter estimates (in log space)
     pbigboot(:,i) = pbooti;
 
     % For pbest, generate model  
-    Ymodboot = modelfunskinny(pbigboot(:,i),expt, pxform);
-
-    
-    
+    Ymodboot = modelfunskinny(pbooti,expt, pxform); 
 
 end
 toc
 
-% save('bootstrap1.mat')
+save(['bootstrap' num2str(index) '.mat'])
 
 % %% Plot one example to make sure the fitting is working
 % figure;
@@ -109,7 +98,7 @@ toc
 % legend('simulated data','fit to sim data', 'pbest model', 'real data', 'Location', 'NorthWest')
 % legend boxoff
 % set(gca,'FontSize',20,'LineWidth',1.5)
-% 
+
 % 
 % %% Use plotmatrix to visualize parameters
 % paramnames = fieldnames(pbest);
