@@ -30,6 +30,7 @@ end
 % residuals as single vector
 residuals = Ymod-Yexpt;
 ndata = length(residuals);
+sigma = std(residuals);
 
 
 %% Run a loop to creat and fit synthetic data
@@ -43,7 +44,7 @@ pbestlog    = pstruct2vec(pbest,pxform);
 pbestactual = exp(pbestlog);
 pvec0logall = zeros(length(pbestlog),nruns);
 pbigboot    = zeros(length(pbestlog),nruns);
-for i = 1:nruns
+for i = 1:1%nruns
     % create synthetic data by:
     % randomly sample with replacement from residual list and add to the
     % model fit from original pbest
@@ -59,7 +60,7 @@ for i = 1:nruns
     end   
       
     % fit the synthetic data: (perhaps make this a function)
-    errfun = @(Ypred,Yobs)sum(sum((Ypred(~isnan(Yobs))-Yobs(~isnan(Yobs))).^2)); % sum squared error function ignoring NaNs
+    errfun = @(Ypred,Yobs)sum(sum((Ypred(~isnan(Yobs))-Yobs(~isnan(Yobs))).^2))./(sigma.^2); % sum squared error function ignoring NaNs
     pvec0  = pstruct2vec(pinit,pxform);
     cvec   = cvstruct2vec(cvs,pinit,pxform);
     ii     = cvec > eps & cvec < Inf;  
@@ -99,7 +100,8 @@ save(['bootstrap' num2str(index) '.mat'])
 % legend boxoff
 % set(gca,'FontSize',20,'LineWidth',1.5)
 
-% 
+
+%%
 % %% Use plotmatrix to visualize parameters
 % paramnames = fieldnames(pbest);
 % figure;

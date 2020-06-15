@@ -4,14 +4,15 @@ paramstruct = load('bootstrap_500runs.mat');
 pbest = paramstruct.pbest;
 pbigboot = paramstruct.pbigbootall;
 ofun = paramstruct.ofun; % This returns the fval for a parameter set
-
-
+pinit = paramstruct.pinit;
+residuals = paramstruct.residuals;
+sigma = std(residuals);
 %% Use plotmatrix to visualize bootstrapped parameters
-nparams = size(pbigboot,1)
-paramnames = fieldnames(pbest); % Which parameters did we decide to set? 
+nparams = size(pbigboot,1);
+paramnames = fieldnames(pinit); 
 figure;
 [S,AX,BigAx,H,HAx] = plotmatrix(pbigboot');
-title(BigAx,'A Comparison of Parameter Estimates ')
+title(BigAx,'A Comparison of Bootstrapped Parameter Estimates ')
 for i = 1:nparams
 ylabel(AX(i,1),paramnames{i})
 xlabel(AX(7,i),paramnames{i})
@@ -29,7 +30,7 @@ randmat = rand(nparams, nruns);
 pbig = pstruct2vec(pbest,pxform);
 fvalbest = ofun(pbig);
 pbestMC = pbig;
-%%
+%% Run forward model from uniform sampling from parameter bounds 
 for i = 1:nruns
     % get your parameters
     phati = randmat(:,i).*(phatbounds(2,:)-phatbounds(1,:)) + phatbounds(1,:);
@@ -42,17 +43,17 @@ for i = 1:nruns
         pbestMC = phati';
     end
 end
+% Not sure why but this returns "matrix is badly scaled, results may be
+% inaccurate"
 %% Find the parameters that fall within certain fval ranges 
-DO = [68, 90, 95]; 
+DO = [0.68, 0.90, 0.95]; 
 
 % From your distribution of fvals, find the 68, 90, and 95th lowest fvals
 for i= 1:length(DO)
     ikeep = [];
-    % set your f threshold
-    fbounds(i) = prctile(fval', DO(i));
-    % identify the indexes that correspond to parameters below that
-    % threshold
-    ikeep = fval<=fbounds(i);
+    % fbest + deltaf from chi-squared table with nparams df and D0 % CI
+    ikeep = fval./(sigma.^2)<= fvalbest./(sigma.^2) + chi2inv(DO(i), nparams);
+
     % save those parameter sets
     paramsMC{i}=pbigMC(:,ikeep);
 end
