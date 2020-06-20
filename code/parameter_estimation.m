@@ -19,7 +19,7 @@ bweight = 1; % how much to weight bayesian penalty relative to chi squared error
 figure('Position',[239   558   990   420]);
 xspan = 10.^[-2:0.25:6]';
 plot_expt2(expt,pinit,xspan,'Xscale','log','Ylim',[-10 100],'Xtick',10.^[-2:2:6]);
-
+print('init_fit.png','-dpng');
 	
 %% ok now setup parameter estimation problem and run it
 
@@ -44,6 +44,7 @@ pbest = pvec2struct(pbigbest,pxform)
 figure('Position',[239   558   990   420]);
 xspan = 10.^[-2:0.25:6]';
 plot_expt2(expt,pbest,xspan,'Xscale','log','Ylim',[-10 100],'Xtick',10.^[-2:2:6]);
+print('final_fit.png','-dpng');
 
 %% Generate outputs for identifiability analysis
 save('pbest', 'pbest')
@@ -60,3 +61,4 @@ Tskinny = save_skinny_results(pxform,cvs,pinit,pbest,[results_fileroot,'_skinny.
 
 figure;
 param_plot(Tskinny,sprintf('Estimation results, bayes weight = %d',bweight))
+print('final_params.png','-dpng');
