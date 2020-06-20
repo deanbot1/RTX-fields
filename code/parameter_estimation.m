@@ -6,7 +6,7 @@
 clear all; close all
 parameter_filename = 'adcx_parameters_experiments.csv'; % special parameter and experimental settings filename
 results_fileroot = 'adcx_parameter_results';
-bweight = 100; % how much to weight bayesian penalty relative to chi squared error function
+bweight = 1; % how much to weight bayesian penalty relative to chi squared error function, should be always 0 or 1, unless you have a very good reason to make it bigger!
 
 
 %% clear the workspace and close all figure windows
