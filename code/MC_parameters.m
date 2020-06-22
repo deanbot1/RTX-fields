@@ -5,8 +5,8 @@ pbest = paramstruct.pbest;
 pbigboot = paramstruct.pbigbootall;
 ofun = paramstruct.ofun; % This returns the fval for a parameter set
 pinit = paramstruct.pinit;
-residuals = paramstruct.residuals;
-sigma = std(residuals);
+% residuals = paramstruct.residuals;
+% sigma = std(residuals);
 %% Use plotmatrix to visualize bootstrapped parameters
 nparams = size(pbigboot,1);
 paramnames = fieldnames(pinit); 
@@ -52,7 +52,7 @@ DO = [0.68, 0.90, 0.95];
 for i= 1:length(DO)
     ikeep = [];
     % fbest + deltaf from chi-squared table with nparams df and D0 % CI
-    ikeep = fval./(sigma.^2)<= fvalbest./(sigma.^2) + chi2inv(DO(i), nparams);
+    ikeep = fval<= fvalbest + chi2inv(DO(i), nparams);
 
     % save those parameter sets
     paramsMC{i}=pbigMC(:,ikeep);
