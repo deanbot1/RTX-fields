@@ -1,4 +1,25 @@
-function [expt,pinit,pxform,cvs] = parse_par_expt(Tpar,Texp)
+function [expt,pinit,pxform,cvs] = parse_par_expt(Tpar,Texp,varargin)
+% takes in Tpar table and Texp experiment description table 
+% optional arguments are 'PARNAME',PARVAL name,value pairs that override the parameter values with the PARVAL and doesn't fit that parameter later on... 
+% it can handle a PARNAME that's expt-specific, like 'CD16_F158'
+% BE CAREFUL, if 'CD16_F158' is a thing and you pass it 'CD16' it probably
+% won't complain but it won't be doing what you think it is...
+% returns:
+% expt structure array with pmap functions set
+% pinit, initial parameter guess
+% pxform, param transformations
+% cvs, a structure of cv values (0 means don't fit), nonzero is used as sigma in
+% bayes penalty 
+
+clamplist = {};
+clampvals = [];
+
+if nargin > 2
+	for j = 1:2:length(varargin)
+		clamplist{end+1} = varargin{j};
+		clampvals(end+1) = varargin{j+1};
+	end
+end
 
 vnames = Tpar.Properties.VariableNames;
 EE = arrayfun(@(s)sscanf(s{1},'E%d_*'),vnames,'UniformOutput',false);
@@ -30,9 +51,14 @@ for j = 1:Nexp
 	ej = expt(j);
 	for i = 1:height(Tpar)
 		pname = Tpar.name{i};
-		if Tpar.cv(i) < eps
+		ipar = find(strcmp(clamplist,pname));
+		if Tpar.cv(i) < eps | ~isempty(ipar)
 			% it's fixed, no fitting
-			pmap.(pname) = @(pfit)ifelseval(isempty(Tpar.(ej.name){i}),Tpar.default(i),str2num(Tpar.(ej.name){i})); % it's just a numeric value, fixed
+			if isempty(ipar)
+				pmap.(pname) = @(pfit)ifelseval(isempty(Tpar.(ej.name){i}),Tpar.default(i),str2num(Tpar.(ej.name){i})); % it's just a numeric value, fixed
+			else
+				pmap.(pname) = @(pfit)clampvals(ipar); % override the Tpar value and keep it off the pfit list...
+			end
 %			pinit.(pname) = Tpar.default(i);
 %			pxform.(pname) = Tpar.xform{i};
 %			cvs.(pname) = Tpar.cv(i);
@@ -45,10 +71,15 @@ for j = 1:Nexp
 			if isempty(str2num(Tpar.(ej.name){i}))
 				% then it's a string and needs to be parsed out somehow
 				tname = [pname '_' Tpar.(ej.name){i}];
-				pmap.(pname) = @(pfit)pfit.(tname);
-				pinit.(tname) = Tpar.default(i);
-				pxform.(tname) = Tpar.xform{i};
-				cvs.(tname) = Tpar.cv(i);
+				ipar = find(strcmp(clamplist,tname));
+				if isempty(ipar)
+					pmap.(pname) = @(pfit)pfit.(tname);
+					pinit.(tname) = Tpar.default(i);
+					pxform.(tname) = Tpar.xform{i};
+					cvs.(tname) = Tpar.cv(i);
+				else
+					pmap.(pname) = @(pfit)clampvals(ipar); % but if it's in the clamplist just set its 'value' to the passed through value in varargin
+				end
 			else
 				% then it's a value and it's fixed somehow
 				pmap.(pname) = @(pfit)str2num(Tpar.(ej.name){i}); % fixed to # in expt
