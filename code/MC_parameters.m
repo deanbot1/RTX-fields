@@ -1,6 +1,9 @@
-% MC scheme for bootstrapped parameter sets
+% Monte Carlo sampling of parameter space
+
+
 close all; clear all; clc
-paramstruct = load('bootstrap_500runs.mat');
+
+paramstruct = load('bootstrap_500runs_July4.mat');
 pbest = paramstruct.pbest;
 pbigboot = paramstruct.pbigbootall;
 ofun = paramstruct.ofun; % This returns the fval for a parameter set
@@ -9,21 +12,29 @@ residuals = paramstruct.residuals;
 sigma = std(residuals);
 nparams = size(pbigboot,1);
 paramnames = fieldnames(pinit); 
-%% Use plotmatrix to visualize bootstrapped parameters
+pbestnames = fieldnames(pbest);
 
-figure;
-[S,AX,BigAx,H,HAx] = plotmatrix(pbigboot');
-title(BigAx,'A Comparison of Bootstrapped Parameter Estimates ')
-for i = 1:nparams
-ylabel(AX(i,1),paramnames{i})
-xlabel(AX(7,i),paramnames{i})
-end
-%% Monte Carlo
+
+
+
+% Convert pbest to a matrix 
+pbesttab = struct2table(pbest);
+pbestmat = pbesttab{:,:};
+
+
+
+
+
+
+%% Define parameter range
 nruns = 500;
 % Grab the 99th percentiles from bootstrapping parameter ranges to sample
 % from
-phatbounds =prctile(pbigboot',[0.5,99.5], 1);
-nparams = length(pbest);
+bootbounds =prctile(pbigboot',[0.5,99.5], 1);
+% Use the spread in the bootstrap parameter estiamtes to sample
+% symmetrically
+diamvec = bootbounds(2,:) - bootbounds(1,:);
+diamvec = diamvec';
 
 % Uniform sampling from k-dimensional hyper-rectangle
 pxform = paramstruct.pxform;
@@ -31,17 +42,51 @@ randmat = rand(nparams, nruns);
 pbig = pstruct2vec(pbest,pxform);
 fvalbest = ofun(pbig)./(sigma.^2);
 pbestMC = pbig;
+factor = 0.4;
+phatbounds = horzcat((pbestMC-factor*diamvec), (pbestMC+factor*diamvec));
+phatbounds = phatbounds';
+
+%% Use plotmatrix to visualize bootstrapped parameters
+
+figure;
+[S,AX,BigAx,H,HAx] = plotmatrix(pbigboot');
+for k = 1:nparams
+    hold(HAx(1,k),'on')
+plot(HAx(1,k),pbestMC(k),1,'g*','LineWidth',2)
+for m = 1:nparams
+    hold(AX(m,k),'on')
+    if m~=k
+    plot(AX(m,k), pbestMC(k), pbestMC(m), 'r*', 'LineWidth',2)
+    end
+end
+end
+% S are the scatter plots, H are the histograms
+title(BigAx,'A Comparison of Bootstrapped Parameter Estimates ')
+for j = 1:nparams
+   
+ylabel(AX(j,1),paramnames{j})
+xlabel(AX(7,j),paramnames{j})
+end
 %% Run forward model from uniform sampling from parameter bounds 
+fval = [];
+
 for i = 1:nruns
+    w = warning('on', 'all');
+    id = w.identifier;
+    warning('off',id);
     % get your parameters
-    phati = randmat(:,i).*(phatbounds(2,:)-phatbounds(1,:)) + phatbounds(1,:);
+    phati = randmat(:,i)'.*(phatbounds(2,:)-phatbounds(1,:)) + phatbounds(1,:);
   
     % store parameters
     pbigMC(:,i) =phati';
     % compute function evaluation and save
-    fval(i) =ofun(phati')/(sigma.^2);
-    if fval(i)< fvalbest
-        fvalbest = fval(i);
+    ofunval = ofun(phati')./(sigma.^2);
+    if isreal(ofunval)
+        fval = vertcat(fval,ofunval);
+    end
+   
+    if ofunval< fvalbest
+        fvalbest = ofunval;
         pbestMC = phati';
     end
 end
@@ -54,11 +99,14 @@ histogram(fval, 100)
 hold on
 plot(fvalbest, 1, '*')
 for i = 1:length(DO)
-plot(fvalbest + chi2inv(DO(i), nparams), '*')
+plot([(fvalbest + chi2inv(DO(i), nparams)) (fvalbest + chi2inv(DO(i), nparams))],[0 300], '--','LineWidth',2)
 end
+xlim([0 50])
 legend('fvals', 'fvalbest', '68th','90th', '95th')
+legend boxoff
 xlabel('fval')
 ylabel('frequency')
+set(gca,'FontSize',14,'LineWidth',1.5)
 %% Find the parameters that fall within certain fval ranges 
 DO = [0.68, 0.90, 0.95]; 
 
@@ -76,31 +124,51 @@ for i= 1:length(DO)
     % save those parameter sets
     paramsMC{i}=pbigMC(:,ikeep);
 end
-%% Plot overlapping histograms, also need to plot parameter relationships...
-figure;
-for i = 1:7
- subplot(1,7,i)
-for j = 1:2length(DO)
-    k = length(DO)+1-j;
-    parammat = paramsMC{k};
-    histogram(parammat(i,:),linspace(phatbounds(1,i), phatbounds(2,i), 20))
-    hold on
-    xlabel([paramnames{i}])
-    legend('95th', '90th', '68th')
-    set(gca,'FontSize',16,'LineWidth',1.5)
-end
-end
+
 %% Plot using plotmatrix
 % Not sure how to plot on the same matrix
 figure;
-for i = 1:length(DO)
-[S,AX,BigAx,H,HAx] = plotmatrix(paramsMC{i}');
-hold on
 
-title(BigAx,'A Comparison of Parameter Estimates ')
+% first plot the 95th percentile using plot matrix
+[S,AX,BigAx,H,HAx] = plotmatrix(paramsMC{3}');
+for j = 1:nparams
+ylabel(AX(j,1),paramnames{j})
+xlabel(AX(7,j),paramnames{j})
+end
+
+
+for k = 1:nparams
+    for i = 1:2
+    hold(HAx(1,k),'on')
+    % Add the parameter matrices for each percentile
+    pmat = paramsMC{i};
+    histogram(HAx(1,k), pmat(k,:))
+    
+    % Add the scatter plot for each percentile
+    for m = 1:nparams
+    hold(AX(m,k),'on')
+    if m~=k
+    plot(AX(m,k), pmat(k,:), pmat(m,:), '.')
+    end
+    end
+    end
+end
+
+% Show were the best parameter value falls
+hold on
+    for k = 1:nparams
+    hold(HAx(1,k),'on')
+    plot(HAx(1,k),pbestMC(k),1,'g*','LineWidth',2)
+   for m = 1:nparams
+    hold(AX(m,k),'on')
+    if m~=k
+    plot(AX(m,k), pbestMC(k), pbestMC(m), 'r*', 'LineWidth',2)
+    end
+    end
+    end
+title(BigAx,'Monte Carlo Parameter Estimates')
 for j = 1:nparams
 ylabel(AX(j,j),paramnames{j})
 xlabel(AX(7,j),paramnames{j})
-end
 end
 save('paramsMC', 'paramsMC')
