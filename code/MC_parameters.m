@@ -3,7 +3,7 @@
 
 close all; clear all; clc
 
-paramstruct = load('bootstrap_500runs_July4.mat');
+paramstruct = load('bootstrap_500runs_July16.mat');
 pbest = paramstruct.pbest;
 pbigboot = paramstruct.pbigbootall;
 ofun = paramstruct.ofun; % This returns the fval for a parameter set
@@ -135,6 +135,7 @@ for j = 1:nparams
 ylabel(AX(j,1),paramnames{j})
 xlabel(AX(7,j),paramnames{j})
 end
+hold on
 
 
 for k = 1:nparams
@@ -145,12 +146,12 @@ for k = 1:nparams
     histogram(HAx(1,k), pmat(k,:))
     
     % Add the scatter plot for each percentile
-    for m = 1:nparams
-    hold(AX(m,k),'on')
-    if m~=k
-    plot(AX(m,k), pmat(k,:), pmat(m,:), '.')
-    end
-    end
+        for m = 1:nparams
+        hold(AX(m,k),'on')
+        if m~=k
+        plot(AX(m,k), pmat(k,:), pmat(m,:), '.')
+        end
+        end
     end
 end
 
