@@ -52,7 +52,7 @@ figure;
 [S,AX,BigAx,H,HAx] = plotmatrix(pbigboot');
 for k = 1:nparams
     hold(HAx(1,k),'on')
-plot(HAx(1,k),pbestMC(k),1,'g*','LineWidth',2)
+plot(HAx(1,k),pbestMC(k),1,'r*','LineWidth',2)
 for m = 1:nparams
     hold(AX(m,k),'on')
     if m~=k
@@ -69,6 +69,7 @@ xlabel(AX(7,j),paramnames{j})
 end
 %% Run forward model from uniform sampling from parameter bounds 
 fval = [];
+fvalinit = ofun(pbig)/(sigma.^2);
 
 for i = 1:nruns
     w = warning('on', 'all');
@@ -97,12 +98,13 @@ DO = [0.68, 0.90, 0.95];
 figure;
 histogram(fval, 100)
 hold on
-plot(fvalbest, 1, '*')
+plot(fvalbest, 1, 'g*')
+plot(fvalinit, 1, 'r*')
 for i = 1:length(DO)
 plot([(fvalbest + chi2inv(DO(i), nparams)) (fvalbest + chi2inv(DO(i), nparams))],[0 300], '--','LineWidth',2)
 end
 xlim([0 50])
-legend('fvals', 'fvalbest', '68th','90th', '95th')
+legend('fvals', 'fvalbest','original fval', '68th','90th', '95th')
 legend boxoff
 xlabel('fval')
 ylabel('frequency')
@@ -160,10 +162,12 @@ hold on
     for k = 1:nparams
     hold(HAx(1,k),'on')
     plot(HAx(1,k),pbestMC(k),1,'g*','LineWidth',2)
+    plot(HAx(1,k), pbig(k), 1, 'r*', 'LineWidth',2)
    for m = 1:nparams
     hold(AX(m,k),'on')
     if m~=k
-    plot(AX(m,k), pbestMC(k), pbestMC(m), 'r*', 'LineWidth',2)
+    plot(AX(m,k), pbestMC(k), pbestMC(m), 'g*', 'LineWidth',2)
+    plot(AX(m,k), pbig(k), pbig(m), 'r*', 'LineWidth',2)
     end
     end
     end
