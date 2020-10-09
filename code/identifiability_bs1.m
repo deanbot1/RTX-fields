@@ -18,7 +18,7 @@ index = 1;
 % store them
 Ne = length(expt);
 Yexpt = [];
-ttnames = fieldnames(expt(1).pmap); % names of target paramter names
+ttnames = fieldnames(expt(1).pmap); % names of target parameter names
 pbig = pstruct2vec(pbest,pxform); % gather full model inputs as vector
 % For pbest, generate model  
 Ymod = modelfunskinny(pbig,expt, pxform);
