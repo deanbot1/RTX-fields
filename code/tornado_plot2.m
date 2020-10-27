@@ -2,9 +2,12 @@
 clear all; close all; 
 
 Tpar = readtable('adcx_parameter_results_fat.csv');  % need to update this with veronica's latest numbers!
+
+
 SNPvar = 'V158'; % which SNP to be 'centered' around
 CellLine = 'Z138'; % which cell line to be 'centered' around
 varname = sprintf('%son%s',SNPvar,CellLine);
+
 
 for j = 1:height(Tpar)
 	pbest.(Tpar.name{j}) = Tpar.E1_V158onZ138(j); % pick which experiment to center tornado around
