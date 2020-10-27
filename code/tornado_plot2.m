@@ -4,8 +4,8 @@ clear all; close all;
 Tpar = readtable('adcx_parameter_results_fat.csv');  % need to update this with veronica's latest numbers!
 
 
-SNPvar = 'V158'; % which SNP to be 'centered' around
-CellLine = 'Z138'; % which cell line to be 'centered' around
+SNPvar = 'F158'; % which SNP to be 'centered' around
+CellLine = 'SUDHL4'; % which cell line to be 'centered' around
 varname = sprintf('%son%s',SNPvar,CellLine);
 
 
@@ -15,11 +15,14 @@ end
 
 %% test the main function
 dp = struct('CD20',0.01); % for example, dp = struct('CD20',0.01) sets up the question, how much fold increase in 'CD16' is needed to offset 2 logs drop in CD20?
-dx = how_much_dx_to_offset_dp(pbest,dp,'gamma',@adcx_wrapper,0.1,[0:.1:4]);
+dx = how_much_dx_to_offset_dp(pbest,dp,'gamma',@adcx_wrapper,1000,[0:.1:4]);
 
 %% specify the objective function on which to do sensitivity analysis
-ofun = @(pstruct)how_much_dx_to_offset_dp(pstruct,dp,'gamma',@adcx_wrapper,0.1,[0:.1:4]) ; % set up anonymous Output function to run analysis on
-xlabel = 'how much \gamma fc required to offset CD20 \leftarrow CD20*0.01'; % this needs to be hand curated!
+ofun = @(pstruct)how_much_dx_to_offset_dp(pstruct,dp,'gamma',@adcx_wrapper,1000,[0:.1:4]) ; % set up anonymous Output function to run analysis on
+xlab = 'how much gamma fc required to offset CD20 \leftarrow CD20*0.01'; % this needs to be hand curated!  Make it automatic...
+
+ofun = @(pstruct)adcx_wrapper(pstruct,1000,[0:.1:4]);
+xlab = '%ADCC';
 
 %% next step, read in quantiles and step through them for each paramter in the quantiles table.
 Tfull = readtable('quantiles_bootstraps_skinny.csv'); Tfull.Properties.RowNames = Tfull.Var1;
@@ -60,7 +63,7 @@ end
 
 %% now we run the senstivity main loop
 
-jgood = find(std(qmat,[],2)>eps);
+jgood = find(std(qmat,[],2)./mean(qmat,2) > 100*eps);
 sensnames = pnames(jgood); % only loop over parameters that have variability over qmat
 qmat = qmat(jgood,:);
 Nsens = length(sensnames);
@@ -77,56 +80,31 @@ for j = 1:Nsens
 	end
 end
 
+%% now we plot the results
+figure('Position',[680   323   407   655]);
+fbest = ofun(pbest);
+% pmid = pbest;
+% for j = 1:Nsens
+% 	pmid.(sensnames{j}) = funvals(j,find(qlevels==0.5));
+% end
+% fmid = ofun(pmid);
+plot(fbest*[1 1],[0 Nsens+1],'w-'); hold on
 
+spans = max(funvals,[],2)-min(funvals,[],2);
+[~,isort] = sort(spans);
 
-stop
-%% outdated stuff
-
-par = readtable('adcx_parameter_table.csv');
-par.low = par.value/2;
-par.high = par.value*2;
-par.Properties.RowNames = par.paramnames;
-v2s = @(vec)pvec2struct(vec,par.Properties.RowNames); % local function converting parameter vector to parameter structure
-
-paramstochange = par.paramnames(find(par.sens));
-Npar = length(paramstochange);
-
-R_conc = par{'RTX','value'};
-modelfun = @(p)adcx_wrapper(p,R_conc)
-p = v2s(par.value);
-defval = modelfun(p);
-
-for j = 1:Npar
-	plow = p; phigh = p;
-	plow.(paramstochange{j}) = par{paramstochange{j},'low'};
-	loval(j,1) = modelfun(plow);
-	phigh.(paramstochange{j}) = par{paramstochange{j},'high'};
-	hival(j,1) = modelfun(phigh);
-end
-
-%% now plot the results
-figure;
-diffs = abs(loval-hival);
-[~,jsort] = sort(diffs);
-for j = 1:Npar
-	plot([loval(jsort(j)) hival(jsort(j))],j*[1 1],'b-o','linewidth',4,'MarkerFaceColor','b');
-	plot(loval(jsort(j)),j,'bo','MarkerFaceColor','g');
-	plot(hival(jsort(j)),j,'bo','MarkerFaceColor','r');
-	plot(defval,j,'ko','MarkerFaceColor','k','MarkerSize',5);
-	hold on;
-	if loval(jsort(j)) < hival(jsort(j))
-		loalign = 'right'; highalign = 'left';
-	else
-		loalign = 'left';highalign = 'right';
+barcol = 0.5*[1 1 1];
+for j = 1:Nsens
+	jj = isort(j);
+	for k = 1:floor(Nquan/2)
+		kint = funvals(jj,[k,Nquan-k]);
+		plot(kint,j*[1 1],'-','LineWidth',2*k,'Color',barcol);
 	end
-	text(defval,j,num2str(par{paramstochange(jsort(j)),'value'}),'horizontalalignment','center','verticalalignment','bottom');
-	text(loval(jsort(j)),j,['  ' num2str(par{paramstochange(jsort(j)),'low'}) '  '],'HorizontalAlignment',loalign,'color','g');
-	text(hival(jsort(j)),j,['  ' num2str(par{paramstochange(jsort(j)),'high'}) '  '],'HorizontalAlignment',highalign,'color','r');
+	dk = diff(kint)/4;
+	fill(funvals(jj,find(qlevels==0.5))+dk*[-2 0 -2],[0 0 0.3]+j,barcol,'edgecolor','none');
+	%plot(funvals(jj,ceil(Nquan/2)),j,'ro');
 end
 
-
-plot(defval*[1 1],[0 Npar+0.5],'k-');
-set(gca,'Ytick',[1:Npar],'Yticklabel',paramstochange(jsort));
-set(gca,'Xlim',[-20 120],'Ylim',[0.5 Npar+0.5]);
-xlabel('% ADCC @ 4h');
-grid on
+set(gca,'Ytick',[1:Nsens],'YtickLabel',sensnames(isort));
+set(gca,'Color',[.2 .2 1]);
+xlabel(xlab);
