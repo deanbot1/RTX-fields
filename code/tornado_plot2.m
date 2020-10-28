@@ -4,16 +4,17 @@ clear all; close all;
 Tpar = readtable('adcx_parameter_results_fat.csv');  % these estimates will be the 'centerline' in the plot  ** nb "sens" column is not used!
 
 
-SNPvar = 'F158'; % which SNP to be 'centered' around
-CellLine = 'SUDHL4'; % which cell line to be 'centered' around
-varname = sprintf('%son%s',SNPvar,CellLine);
+varname = 'E4_F158onSUDHL4' ; % which experiment to center the sensitivity analysis around
+isnp1 = strfind(varname,'_'); isnp2 = strfind(varname,'on'); % this code won't work if there's something after the cell line name in varname!!!!
+SNPvar = varname(isnp1+1:isnp2-1);
+CellLine = varname(isnp2+2:end);
 Rconc = 1000; % RTX conc in uM?
 tend = 4; % hours of ADCC assay
 titlstr = sprintf('%s SNP on %s cells:%d\\muM RTX @ %dh',SNPvar,CellLine,Rconc,tend);
 
 
 for j = 1:height(Tpar)
-	pbest.(Tpar.name{j}) = Tpar.E1_V158onZ138(j); % pick which experiment to center tornado around
+	pbest.(Tpar.name{j}) = Tpar.(varname)(j); % pick which experiment to center tornado around
 end
 
 %% test the main function
@@ -28,8 +29,8 @@ ppname = fieldnames(dp); ppname = ppname{1};
 xlab = sprintf('%s f.c. to offset %s \\leftarrow %s \\times %3.3g',xname,ppname,ppname,dp.(ppname));
 
 
-ofun = @(pstruct)adcx_wrapper(pstruct,Rconc,[0:.1:tend]);
-xlab = '%ADCC';
+%ofun = @(pstruct)adcx_wrapper(pstruct,Rconc,[0:.1:tend]);
+%xlab = '%ADCC';
 
 
 %% next step, read in quantiles and step through them for each paramter in the quantiles table.
