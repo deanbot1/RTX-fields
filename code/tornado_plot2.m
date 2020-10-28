@@ -3,12 +3,13 @@ clear all; close all;
 
 Tpar = readtable('adcx_parameter_results_fat.csv');  % these estimates will be the 'centerline' in the plot  ** nb "sens" column is not used!
 
+p_over = struct('E0toT0',25); % OVERRIDEs to PBEST values...  
 
 varname = 'E4_F158onSUDHL4' ; % which experiment to center the sensitivity analysis around
 isnp1 = strfind(varname,'_'); isnp2 = strfind(varname,'on'); % this code won't work if there's something after the cell line name in varname!!!!
 SNPvar = varname(isnp1+1:isnp2-1);
 CellLine = varname(isnp2+2:end);
-Rconc = 1000; % RTX conc in uM?
+Rconc = 100; % RTX conc in uM
 tend = 4; % hours of ADCC assay
 titlstr = sprintf('%s SNP on %s cells:%d\\muM RTX @ %dh',SNPvar,CellLine,Rconc,tend);
 
@@ -17,8 +18,29 @@ for j = 1:height(Tpar)
 	pbest.(Tpar.name{j}) = Tpar.(varname)(j); % pick which experiment to center tornado around
 end
 
+% overrride pbest values with local p_over values
+if exist('p_over')
+	poverstr = '';
+	povernames = fieldnames(p_over);
+	for k = 1:length(povernames)
+		pppname = povernames{k};
+		if ismember(pppname,fieldnames(pbest))
+			if abs(pbest.(pppname)-p_over.(pppname)) > eps
+			disp(sprintf('overriding pbest.%s=%d with %d',pppname,pbest.(pppname),p_over.(pppname)));
+			pbest.(pppname) = p_over.(pppname);
+			poverstr = [poverstr sprintf(' %s=%d',pppname,pbest.(pppname))];
+			end
+		else
+			error(sprintf('no such parameter: %s',pppname));
+		end
+	end
+	if ~isempty(poverstr)
+		titlstr = {titlstr,poverstr};
+	end
+end
+
 %% test the main function
-xname = 'gamma';
+xname = 'CD16';
 dp = struct('CD20',0.01); % for example, dp = struct('CD20',0.01) sets up the question, how much fold increase in 'CD16' is needed to offset 2 logs drop in CD20?
 dx = how_much_dx_to_offset_dp(pbest,dp,xname,@adcx_wrapper,Rconc,[0:.1:tend]);
 
@@ -29,8 +51,8 @@ ppname = fieldnames(dp); ppname = ppname{1};
 xlab = sprintf('%s f.c. to offset %s \\leftarrow %s \\times %3.3g',xname,ppname,ppname,dp.(ppname));
 
 
-%ofun = @(pstruct)adcx_wrapper(pstruct,Rconc,[0:.1:tend]);
-%xlab = '%ADCC';
+ofun = @(pstruct)adcx_wrapper(pstruct,Rconc,[0:.1:tend]);
+xlab = '%ADCC';
 
 
 %% next step, read in quantiles and step through them for each paramter in the quantiles table.
