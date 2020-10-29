@@ -138,13 +138,25 @@ for j = 1:Nsens
 % 		plot(kint,j*[1 1],'-','LineWidth',2*k,'Color',barcol);
 % 	end
     fill([xvec flip(xvec)],j+[-yvec flip(yvec)],barcol,'edgecolor','none');
-	%dk = diff(kint)/4;
-	%fill(funvals(jj,find(qlevels==0.5))+dk*[-2 0 -2],0.1*[0 0 dk]+j,barcol,'edgecolor','none');
-	switch(sign(xvec(end)-xvec(1)))
-		case 1
-			plot(funvals(jj,ceil(Nquan/2)),j,'w>');
-		case -1
-			plot(funvals(jj,ceil(Nquan/2)),j,'w<');
+	dk = diff(xvec(ceil(Nquan/2)+[-1 1]))/8;
+	fill(funvals(jj,find(qlevels==0.5))+dk*[-1 1 -1],0.1*[0 0 dk]+j,barcol,'edgecolor','none');
+% 	switch(sign(xvec(end)-xvec(1)))
+% 		case 1
+% 			plot(funvals(jj,ceil(Nquan/2)),j,'w>');
+% 		case -1
+% 			plot(funvals(jj,ceil(Nquan/2)),j,'w<');
+% 	end
+% 	
+	hfirst = text(xvec(1),j-0*0.2,num2str(qmat(jj,1),' %2.3g '),'FontSize',8,'HorizontalAlignment','center','Rotation',90);
+	hlast  = text(xvec(end),j+0*0.2,num2str(qmat(jj,end),' %2.3g '),'FontSize',8,'HorizontalAlignment','center','Rotation',90);
+	hmid = text(xvec(ceil(Nquan/2)),j,num2str(qmat(jj,ceil(Nquan/2)),'%2.3g'),'FontSize',8,'HorizontalAlignment','center','Rotation',90);
+	
+	if xvec(end) > xvec(1)
+		set(hlast,'VerticalAlignment','top');
+		set(hfirst,'VerticalAlignment','bottom');
+	else
+		set(hlast,'VerticalAlignment','bottom');
+		set(hfirst,'VerticalAlignment','top');
 	end
 	%plot(funvals(jj,ceil(Nquan/2)),j,'ro');
 end
