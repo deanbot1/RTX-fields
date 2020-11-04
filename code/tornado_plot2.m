@@ -156,8 +156,8 @@ for j = 1:Nsens
 % 			plot(funvals(jj,ceil(Nquan/2)),j,'w<');
 % 	end
 % 	
-	hfirst = text(xvec(1),j-0*0.2,num2str(qmat(jj,1),' %2.3g '),'FontSize',8,'HorizontalAlignment','right','Rotation',0);
-	hlast  = text(xvec(end),j+0*0.2,num2str(qmat(jj,end),' %2.3g '),'FontSize',8,'HorizontalAlignment','left','Rotation',0);
+	hfirst = text(xvec(1)-dk/2,j,num2str(qmat(jj,1),'%2.3g'),'FontSize',8,'HorizontalAlignment','right','Rotation',0);
+	hlast  = text(xvec(end)+dk/2,j,num2str(qmat(jj,end),'%2.3g'),'FontSize',8,'HorizontalAlignment','left','Rotation',0);
 	hmid = text(xvec(ceil(Nquan/2)),j-dj*ceil(Nquan/2),num2str(qmat(jj,ceil(Nquan/2)),'%2.3g'),'FontSize',8,'HorizontalAlignment','center','Rotation',0,'VerticalAlignment','top');
 	
 % 	if xvec(end) > xvec(1)
