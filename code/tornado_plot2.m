@@ -41,16 +41,15 @@ end
 
 %% test the main function
 xname = 'gamma';
-dp = struct('CD20',0.01); % for example, dp = struct('CD20',0.01) sets up the question, how much fold increase in 'CD16' is needed to offset 2 logs drop in CD20?
+dp = struct('CD20',0.1); % for example, dp = struct('CD20',0.01) sets up the question, how much fold increase in 'CD16' is needed to offset 2 logs drop in CD20?
 dx = how_much_dx_to_offset_dp(pbest,dp,xname,@adcx_wrapper,Rconc,[0:.1:tend]);
 
 %% specify the objective function on which to do sensitivity analysis
-ofun = @(pstruct)how_much_dx_to_offset_dp(pstruct,dp,'gamma',@adcx_wrapper,Rconc,[0:.1:tend]) ; % set up anonymous Output function to run analysis on
-xlab = 'how much gamma fc required to offset CD20 \leftarrow CD20*0.01'; % this needs to be hand curated!  Make it automatic...
-ppname = fieldnames(dp); ppname = ppname{1};
+ofun = @(pstruct)how_much_dx_to_offset_dp(pstruct,dp,xname,@adcx_wrapper,Rconc,[0:.1:tend]) ; % set up anonymous Output function to run analysis on
+ppname = fieldnames(dp); ppname = ppname{1}; % this breaks, or is wrong, if there is more than one parameter listed in dp
 xlab = sprintf('%s f.c. to offset %s \\leftarrow %s \\times %3.3g',xname,ppname,ppname,dp.(ppname));
 
-
+% uncomment below if you want to sensitivity analysis on %ADCC
 %ofun = @(pstruct)adcx_wrapper(pstruct,Rconc,[0:.1:tend]);
 %xlab = '%ADCC';
 
@@ -139,8 +138,8 @@ for j = 1:Nsens
 % 	end
     fill([xvec flip(xvec)],j+[-yvec flip(yvec)],barcol,'edgecolor','none'); % shark 'body'
 	dk = diff(xvec(ceil(Nquan/2)+[-1 1]))/8;
-	fill(funvals(jj,find(qlevels==0.5))+dk*[-1 1 -1],0.2*[0 0 dk]+j+dj*ceil(Nquan/2),barcol,'edgecolor',barcol); % shark dorsal 'fin'
-	fill(funvals(jj,find(qlevels==0.5))+dk*[-1 1 -1],-0.1*[0 0 dk]+j,barcol,'edgecolor','w'); % shark side 'fin'
+	fill(funvals(jj,find(qlevels==0.5))+dk*[-1 1 -1],0.2*[0 0 1]+j+dj*ceil(Nquan/2),barcol,'edgecolor',barcol); % shark dorsal 'fin'
+	fill(funvals(jj,find(qlevels==0.5))+dk*[-1 1 -1],-0.1*[0 0 1]+j,barcol,'edgecolor','w'); % shark side 'fin'
 	plot(funvals(jj,end-1),j+dj,'w.'); % eye
 	fill(funvals(jj,1)+dk*[0 0 2],dj*ceil(Nquan/2)*[1 -1 0]+j,barcol,'edgecolor',barcol); % tailfin
 % 	switch sign(dk)

@@ -12,13 +12,20 @@ end
 
 
 adcx_target = modelfun(pin,varargin{:});
-adcx_init = modelfun(pdelta,varargin{:}); % not used, just warming up...
+adcx_init = modelfun(pdelta,varargin{:});
 
+dlx = log(adcx_target/adcx_init); % how many logs to perturb over to see what 'slope' is
+adcx_hi = modelfun(pnewfun( dlx,xname,pdelta),varargin{:});
+adcx_lo = modelfun(pnewfun(-dlx,xname,pdelta),varargin{:});
 
-[dx,fval,exitflag,output] = fzero(@(ddx)adcx_target - modelfun(pnewfun(ddx,xname,pdelta),varargin{:}),1);
+dladcx_dldx = (log(adcx_hi) - log(adcx_lo))/(2*dlx);
+ldx0 = (log(adcx_target)-log(adcx_init))/dladcx_dldx;
+
+[ldx,fval,exitflag,output] = fzero(@(lddx)adcx_target - modelfun(pnewfun(lddx,xname,pdelta),varargin{:}),ldx0);
+dx = exp(ldx);
 end
 
-function pnew = pnewfun(dddx,xname,pdelta)
+function pnew = pnewfun(ldx,xname,pdelta)
 pnew = pdelta;
-pnew.(xname) = pnew.(xname)*dddx;
+pnew.(xname) = pnew.(xname)*exp(ldx);
 end
