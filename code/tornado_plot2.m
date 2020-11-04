@@ -40,7 +40,7 @@ if exist('p_over')
 end
 
 %% test the main function
-xname = 'CD16';
+xname = 'gamma';
 dp = struct('CD20',0.01); % for example, dp = struct('CD20',0.01) sets up the question, how much fold increase in 'CD16' is needed to offset 2 logs drop in CD20?
 dx = how_much_dx_to_offset_dp(pbest,dp,xname,@adcx_wrapper,Rconc,[0:.1:tend]);
 
@@ -51,8 +51,8 @@ ppname = fieldnames(dp); ppname = ppname{1};
 xlab = sprintf('%s f.c. to offset %s \\leftarrow %s \\times %3.3g',xname,ppname,ppname,dp.(ppname));
 
 
-ofun = @(pstruct)adcx_wrapper(pstruct,Rconc,[0:.1:tend]);
-xlab = '%ADCC';
+%ofun = @(pstruct)adcx_wrapper(pstruct,Rconc,[0:.1:tend]);
+%xlab = '%ADCC';
 
 
 %% next step, read in quantiles and step through them for each paramter in the quantiles table.
