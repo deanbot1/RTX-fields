@@ -169,8 +169,8 @@ for j = 1:Nsens
 % 	end
 
 if xvec(end) < xvec(1)
-	set(hlast,'HorizontalAlignment','left');
-	set(hfirst,'HorizontalAlignment','right');
+	set(hlast,'HorizontalAlignment','right');
+	set(hfirst,'HorizontalAlignment','left');
 end
 	%plot(funvals(jj,ceil(Nquan/2)),j,'ro');
 end
