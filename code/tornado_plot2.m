@@ -137,9 +137,18 @@ for j = 1:Nsens
 % 		kint = funvals(jj,[k,Nquan-k]);
 % 		plot(kint,j*[1 1],'-','LineWidth',2*k,'Color',barcol);
 % 	end
-    fill([xvec flip(xvec)],j+[-yvec flip(yvec)],barcol,'edgecolor','none');
+    fill([xvec flip(xvec)],j+[-yvec flip(yvec)],barcol,'edgecolor','none'); % shark 'body'
 	dk = diff(xvec(ceil(Nquan/2)+[-1 1]))/8;
-	fill(funvals(jj,find(qlevels==0.5))+dk*[-1 1 -1],0.1*[0 0 dk]+j,barcol,'edgecolor','none');
+	fill(funvals(jj,find(qlevels==0.5))+dk*[-1 1 -1],0.2*[0 0 dk]+j+dj*ceil(Nquan/2),barcol,'edgecolor',barcol); % shark dorsal 'fin'
+	fill(funvals(jj,find(qlevels==0.5))+dk*[-1 1 -1],-0.1*[0 0 dk]+j,barcol,'edgecolor','w'); % shark side 'fin'
+	plot(funvals(jj,end-1),j+dj,'w.'); % eye
+	fill(funvals(jj,1)+dk*[0 0 2],dj*ceil(Nquan/2)*[1 -1 0]+j,barcol,'edgecolor',barcol); % tailfin
+% 	switch sign(dk)
+% 		case 1
+% 			plot(funvals(jj,1),j,'>','Color',barcol,'MarkerFaceColor',barcol);
+% 		case -1
+% 			plot(funvals(jj,1),j,'<','Color',barcol,'MarkerFaceColor',barcol);
+% 	end
 % 	switch(sign(xvec(end)-xvec(1)))
 % 		case 1
 % 			plot(funvals(jj,ceil(Nquan/2)),j,'w>');
@@ -147,17 +156,22 @@ for j = 1:Nsens
 % 			plot(funvals(jj,ceil(Nquan/2)),j,'w<');
 % 	end
 % 	
-	hfirst = text(xvec(1),j-0*0.2,num2str(qmat(jj,1),' %2.3g '),'FontSize',8,'HorizontalAlignment','center','Rotation',90);
-	hlast  = text(xvec(end),j+0*0.2,num2str(qmat(jj,end),' %2.3g '),'FontSize',8,'HorizontalAlignment','center','Rotation',90);
-	hmid = text(xvec(ceil(Nquan/2)),j,num2str(qmat(jj,ceil(Nquan/2)),'%2.3g'),'FontSize',8,'HorizontalAlignment','center','Rotation',90);
+	hfirst = text(xvec(1),j-0*0.2,num2str(qmat(jj,1),' %2.3g '),'FontSize',8,'HorizontalAlignment','right','Rotation',0);
+	hlast  = text(xvec(end),j+0*0.2,num2str(qmat(jj,end),' %2.3g '),'FontSize',8,'HorizontalAlignment','left','Rotation',0);
+	hmid = text(xvec(ceil(Nquan/2)),j-dj*ceil(Nquan/2),num2str(qmat(jj,ceil(Nquan/2)),'%2.3g'),'FontSize',8,'HorizontalAlignment','center','Rotation',0,'VerticalAlignment','top');
 	
-	if xvec(end) > xvec(1)
-		set(hlast,'VerticalAlignment','top');
-		set(hfirst,'VerticalAlignment','bottom');
-	else
-		set(hlast,'VerticalAlignment','bottom');
-		set(hfirst,'VerticalAlignment','top');
-	end
+% 	if xvec(end) > xvec(1)
+% 		set(hlast,'VerticalAlignment','top');
+% 		set(hfirst,'VerticalAlignment','bottom');
+% 	else
+% 		set(hlast,'VerticalAlignment','bottom');
+% 		set(hfirst,'VerticalAlignment','top');
+% 	end
+
+if xvec(end) < xvec(1)
+	set(hlast,'HorizontalAlignment','left');
+	set(hfirst,'HorizontalAlignment','right');
+end
 	%plot(funvals(jj,ceil(Nquan/2)),j,'ro');
 end
 
