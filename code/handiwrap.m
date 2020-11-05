@@ -1,6 +1,8 @@
 function Tout = handiwrap(pin,tmax,varargin)
-% calls adcx repeatedly for each concentration in R_conc and returns % ADCC
-% vector. It's hard-wired to simulate for 4 hours unless tspan is passed
+% calls adcx repeatedly for each unique combination of Param Name, Value
+% Vector pairs passed into the third and subsequent arguments. 
+% Tout = handiwrap(pin,tmax,param1,vec1,param2,vec2,...)
+% if tmax = [] it assumes 4 hour ADCC assay
 
 if isempty(tmax)
 	tspan = [0:.1:4];
