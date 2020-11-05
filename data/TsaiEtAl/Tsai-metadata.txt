@@ -1,0 +1,29 @@
+Regulation of CD20 in Rituximab-Resistant Cell Lines and
+B-cell Non-Hodgkin Lymphoma
+Ping-Chiao Tsai1
+, Francisco J. Hernandez-Ilizaliturri1,2, Naveen Bangia1
+, Scott H. Olejniczak3
+, and
+Myron S. Czuczman1,2
+
+
+Figure 2. Linear relationship
+between CD20 expression versus
+rituximab-CMC was observed only in
+single-cell clones from RSCL. A
+threshold of surface CD20 density
+appeared to be required for efficient
+cytotoxicity. Single-cell clones of
+parental Raji and the RRCL, Raji2R,
+were obtained by limiting dilution.
+ImageStream analysis of
+approximately 5,000 cells per clone.
+(A) mean surface CD20 density in
+each clone calculated as described
+earlier. Rituximab-CMC in different
+clones was determined by 51Crrelease assay. B, surface CD20
+expression plotted against
+rituximab-CMC to determine the
+correlation. C and D, surface CD55
+and CD59 expression of individual
+clones determined by ImageStream.
