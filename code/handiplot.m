@@ -56,10 +56,14 @@ for js = 1:Ns
 	ylabel(yname,'Interpreter','none')
 	set(gca,'Xlim',[0.9*min(Ts.(xname)),1.1*max(Ts.(xname))]);
 	set(gca,'Ylim',[0.9*min(Tout.(yname)),1.1*max(Tout.(yname))]);
-	if ~isempty(constnames)
-		title(sprintf('%s=%3.3g,%s=%3.3g',sname,Ts.(sname)(1),constnames{:},Tout{1,constnames}));
-	else
-		title(sprintf('%s=%3.3g,%s=%3.3g',sname,Ts.(sname)(1)));
+	
+	tistr = '';
+	if ~isempty(sname)
+		tistr = sprintf('%s=%3.3g ',sname,Ts.(sname)(1));
 	end
+	if ~isempty(constnames)
+		tistr = [tistr sprintf(' %s=%3.3g',constnames{:},Tout{1,constnames})];
+	end
+	title(tistr);
 	grid on
 end
