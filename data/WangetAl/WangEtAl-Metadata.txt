@@ -1,0 +1,19 @@
+Wang-Fig8-ET-ADCC.csv has just the media only ADCC values (white squares).
+
+NK-cell activation and antibody-dependent cellular cytotoxicity induced by rituximab-coated target cells is inhibited by the C3b component of complement
+Siao-Yi Wang, Emilian Racila, [...], and George J. Weiner
+
+Blood. 2008 Feb 1; 111(3): 1456–1463.
+Prepublished online 2007 Nov 16. doi: 10.1182/blood-2007-02-074716
+PMCID: PMC2214766
+PMID: 18024795
+
+Blood. 2008 Feb 1; 111(3): 1456–1463.
+Prepublished online 2007 Nov 16. doi: 10.1182/blood-2007-02-074716
+Copyright/LicenseRequest permission to reuse
+Figure 8
+An external file that holds a picture, illustration, etc.
+Object name is zh80030814170008.jpg
+C5-depleted serum inhibits rituximab-mediated ADCC. Raji cells were labeled with 51Cr and incubated with purified NK cells in various E/T ratios, 5 μg/mL rituximab, and either C5-depleted serum, heat-inactivated C5-depleted serum, or media. Percentage of specific lysis was measured based on 51Cr release. All samples were run in triplicate (n = 3). Data are representative of 3 independent experiments. Error bars represent SD of the mean.
+
+A total of 3 × 106 Raji cells were labeled with 7.4 MBq (200 μCi) of Na251CrO4 at 37°C for 1.5 hours. NK cells from healthy human donors were purified from PBMCs using the NK-cell isolation kit II (Miltenyi Biotec, Auburn, CA) per the manufacturer's instructions. 51Cr-labeled target cells were washed and dispensed into 96-well flat-bottomed plates (1 × 104 cells/well). Serial dilutions of effector cells (E/T ratio of 50:1 to 1:1), rituximab (5 μg/mL), and C5-depleted serum or heat-inactivated C5-depleted serum (20% final concentration) were added as indicated in triplicate. After 4 hours of incubation at 37°C, 51Cr activity in the supernatant was measured. The percentage of specific cytolysis was calculated from the counts of samples according to the following formula: percentage of specific lysis = 100 × (E − S) / (M − S). E represents the experimental release, S is the spontaneous release, and M is the maximum release.
