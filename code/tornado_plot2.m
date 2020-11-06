@@ -41,17 +41,19 @@ end
 
 %% test the main function
 xname = 'gamma';
-dp = struct('CD20',0.1); % for example, dp = struct('CD20',0.01) sets up the question, how much fold increase in 'CD16' is needed to offset 2 logs drop in CD20?
-dx = how_much_dx_to_offset_dp(pbest,dp,xname,@adcx_wrapper,Rconc,[0:.1:tend]);
+pbest.RTX = Rconc;
+dp = struct('RTX',0.1); % for example, dp = struct('CD20',0.01) sets up the question, how much fold increase in 'CD16' is needed to offset 2 logs drop in CD20?
+%dx = how_much_dx_to_offset_dp(pbest,dp,xname,@adcx_wrapper,Rconc,[0:.1:tend]);
+[dx,do] = how_much_dx_to_offset_dp(pbest,dp,xname,@handiwrap,[]);
 
 %% specify the objective function on which to do sensitivity analysis
-ofun = @(pstruct)how_much_dx_to_offset_dp(pstruct,dp,xname,@adcx_wrapper,Rconc,[0:.1:tend]) ; % set up anonymous Output function to run analysis on
+ofun = @(pstruct)how_much_dx_to_offset_dp(pstruct,dp,xname,@handiwrap,[]) ; % set up anonymous Output function to run analysis on
 ppname = fieldnames(dp); ppname = ppname{1}; % this breaks, or is wrong, if there is more than one parameter listed in dp
-xlab = sprintf('%s f.c. to offset %s \\leftarrow %s \\times %3.3g',xname,ppname,ppname,dp.(ppname));
+xlab = sprintf('%s f.c. to offset %3.3g\\times%s \\rightarrow %3.3g\\timesADCC',xname,dp.(ppname),ppname,do);
 
 % uncomment below if you want to sensitivity analysis on %ADCC
-%ofun = @(pstruct)adcx_wrapper(pstruct,Rconc,[0:.1:tend]);
-%xlab = '%ADCC';
+ofun = @(pstruct)handiwrap(pstruct,[]);
+xlab = '%ADCC';
 
 
 %% next step, read in quantiles and step through them for each paramter in the quantiles table.

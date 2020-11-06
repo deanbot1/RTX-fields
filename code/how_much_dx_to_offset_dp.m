@@ -1,7 +1,7 @@
-function dx = how_much_dx_to_offset_dp(pin,dp,xname,modelfun,varargin) 
+function [dx,do] = how_much_dx_to_offset_dp(pin,dp,xname,modelfun,varargin) 
 % a function that returns how much fold change in a particular parameter
 % named xname is required to offset a perturbation dp to the input
-% parameter vector pin. 
+% parameter vector pin. Optionally returns do, which is change in ADCC% caused by dp relative to pin (fraction or fold?) 
 
 
 pdelta = pin;
@@ -13,6 +13,7 @@ end
 
 adcx_target = modelfun(pin,varargin{:});
 adcx_init = modelfun(pdelta,varargin{:});
+do = adcx_init/adcx_target;
 
 dlx = log(adcx_target/adcx_init); % how many logs to perturb over to see what 'slope' is
 adcx_hi = modelfun(pnewfun( dlx,xname,pdelta),varargin{:});

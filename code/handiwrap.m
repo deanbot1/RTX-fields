@@ -13,6 +13,7 @@ end
 % first we generate the design matrix
 parname = {}; parvec = {}; parnums = [];
 
+if length(varargin) > 0
 Npars = length(varargin)/2; % it had better be even!
 
 for k = 1:Npars 
@@ -42,4 +43,17 @@ end
 Tout = table(p_adcc,'VariableNames',{'PCT_ADCC'});
 for k = 1:Npars
 	Tout.(parname{k}) = parvec{k}(dFF(:,k));
+end
+
+if height(Tout)==1
+	Tout = Tout.PCT_ADCC; % return a scalar if Tout is only one row
+end
+
+else
+	p = pin;
+	total_num_cells = p.T0*exp(p.g*max(tspan));
+    [T,~,~,LDH,~,~]= adcx(tspan,p.T0,p.E0toT0,p.Estar0,p.g,p.r,p.kexp,p.gamma,...
+    p.CD20,p.CD16,p.RTX*53.7496/7750,p.kon20,p.koff20,p.kon16,p.koff16,p.h,p.gammaPerf);
+    Tout = 100*LDH(end)/total_num_cells;
+
 end
