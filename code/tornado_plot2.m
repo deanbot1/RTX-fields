@@ -15,7 +15,7 @@ titlstr = sprintf('%s SNP on %s cells:%d\\muM RTX @ %dh',SNPvar,CellLine,Rconc,t
 
 
 for j = 1:height(Tpar)
-	pbest.(Tpar.name{j}) = Tpar.(varname)(j); % pick which experiment to center tornado around
+	pbest.(Tpar.name{j}) = Tpar.(varname)(j); 
 end
 
 % overrride pbest values with local p_over values
@@ -42,7 +42,7 @@ end
 %% test the main function
 xname = 'gamma';
 pbest.RTX = Rconc;
-dp = struct('RTX',0.1); % for example, dp = struct('CD20',0.01) sets up the question, how much fold increase in 'CD16' is needed to offset 2 logs drop in CD20?
+dp = struct('CD20',0.01); % for example, dp = struct('CD20',0.01) sets up the question, how much fold increase in 'CD16' is needed to offset 2 logs drop in CD20?
 %dx = how_much_dx_to_offset_dp(pbest,dp,xname,@adcx_wrapper,Rconc,[0:.1:tend]);
 [dx,do] = how_much_dx_to_offset_dp(pbest,dp,xname,@handiwrap,[]);
 
@@ -52,8 +52,8 @@ ppname = fieldnames(dp); ppname = ppname{1}; % this breaks, or is wrong, if ther
 xlab = sprintf('%s f.c. to offset %3.3g\\times%s \\rightarrow %3.3g\\timesADCC',xname,dp.(ppname),ppname,do);
 
 % uncomment below if you want to sensitivity analysis on %ADCC
-ofun = @(pstruct)handiwrap(pstruct,[]);
-xlab = '%ADCC';
+%ofun = @(pstruct)handiwrap(pstruct,[]);
+%xlab = '%ADCC';
 
 
 %% next step, read in quantiles and step through them for each paramter in the quantiles table.

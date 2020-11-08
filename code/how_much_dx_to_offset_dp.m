@@ -6,8 +6,10 @@ function [dx,do] = how_much_dx_to_offset_dp(pin,dp,xname,modelfun,varargin)
 
 pdelta = pin;
 pnames = fieldnames(dp);
+maxabsldp = 0;
 for j = 1:length(pnames)
 	pdelta.(pnames{j}) = pdelta.(pnames{j})*dp.(pnames{j});
+	maxabsldp = max(maxabsldp,abs(log(dp.(pnames{j}))));
 end
 
 
@@ -16,6 +18,7 @@ adcx_init = modelfun(pdelta,varargin{:});
 do = adcx_init/adcx_target;
 
 dlx = log(adcx_target/adcx_init); % how many logs to perturb over to see what 'slope' is
+dlx = maxabsldp; % perturb x on same scale as p
 adcx_hi = modelfun(pnewfun( dlx,xname,pdelta),varargin{:});
 adcx_lo = modelfun(pnewfun(-dlx,xname,pdelta),varargin{:});
 
