@@ -6,12 +6,13 @@ function [dx,do] = how_much_dx_to_offset_dp(pin,dp,xname,dx0,modelfun,varargin)
 
 pdelta = pin;
 pnames = fieldnames(dp);
-maxabsldp = 0;
+dldp = 0;
 for j = 1:length(pnames)
 	pdelta.(pnames{j}) = pdelta.(pnames{j})*dp.(pnames{j});
-	maxabsldp = max(maxabsldp,abs(log(dp.(pnames{j}))));
+	dldp = max(dldp,abs(log(dp.(pnames{j}))));
 end
 
+dldp = -1; % override the derived dldp
 
 adcx_target = modelfun(pin,varargin{:});
 adcx_init = modelfun(pdelta,varargin{:});
@@ -19,18 +20,18 @@ do = adcx_init/adcx_target;
 
 if isempty(dx0)
 dlx = log(adcx_target/adcx_init); % how many logs to perturb over to see what 'slope' is
-dlx = maxabsldp; % perturb x on same scale as p
-adcx_hi = modelfun(pnewfun( dlx,xname,pdelta),varargin{:});
-adcx_lo = modelfun(pnewfun(-dlx,xname,pdelta),varargin{:});
+dldx = dldp; % perturb x on same scale as p
 
-dladcx_dldx = (log(adcx_hi) - log(adcx_lo))/(2*dlx);
-ldx0 = (log(adcx_target)-log(adcx_init))/dladcx_dldx;
+%adcx_hi = modelfun(pnewfun( dlx,xname,pdelta),varargin{:});
+%adcx_lo = modelfun(pnewfun(-dlx,xname,pdelta),varargin{:});
 
-% dfdp = (modelfun(pnewfun(log(pdelta.(pnames{1})),pnames{1},pin),varargin{:}) - modelfun(pin,varargin{:}))/log(pdelta.(pnames{1})); % partial f wrt p
-% dfdx = (modelfun(pnewfun(log(pdelta.(pnames{1})),xname,pin),varargin{:}) - modelfun(pin,varargin{:}))/log(pdelta.(pnames{1})); % partial f wrt x
-% 
-% gfp = [-dfdp;dfdx];
-% ldx0 = -dfdp*log(pdelta.(pnames{1}))
+%dladcx_dldx = (log(adcx_hi) - log(adcx_lo))/(2*dlx);
+%ldx0 = (log(adcx_target)-log(adcx_init))/dladcx_dldx;
+
+df_dlp = (modelfun(pnewfun(dldp,pnames{1},pin),varargin{:})-modelfun(pnewfun(-dldp,pnames{1},pin),varargin{:}))/(2*dldp); %center difference partial of f wrt logp
+df_dlx = (modelfun(pnewfun(dldx,xname,pin),varargin{:})-modelfun(pnewfun(-dldx,xname,pin),varargin{:}))/(2*dldx); % center difference partial of f wrt logx
+
+ldx0 = -log(pdelta.(pnames{1}))*df_dlp/df_dlx;
 
 else
 	ldx0 = log(dx0);
