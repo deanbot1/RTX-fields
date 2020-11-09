@@ -25,6 +25,13 @@ adcx_lo = modelfun(pnewfun(-dlx,xname,pdelta),varargin{:});
 
 dladcx_dldx = (log(adcx_hi) - log(adcx_lo))/(2*dlx);
 ldx0 = (log(adcx_target)-log(adcx_init))/dladcx_dldx;
+
+% dfdp = (modelfun(pnewfun(log(pdelta.(pnames{1})),pnames{1},pin),varargin{:}) - modelfun(pin,varargin{:}))/log(pdelta.(pnames{1})); % partial f wrt p
+% dfdx = (modelfun(pnewfun(log(pdelta.(pnames{1})),xname,pin),varargin{:}) - modelfun(pin,varargin{:}))/log(pdelta.(pnames{1})); % partial f wrt x
+% 
+% gfp = [-dfdp;dfdx];
+% ldx0 = -dfdp*log(pdelta.(pnames{1}))
+
 else
 	ldx0 = log(dx0);
 end
