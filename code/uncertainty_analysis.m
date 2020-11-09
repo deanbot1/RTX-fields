@@ -110,3 +110,31 @@ save('../out/uncertainty_analyses.mat','ovec','avec','pbigbootall','xnames','dpn
 
 %% report the results
 
+figure
+plotj = 0;
+for jp = 1:length(dpnames)
+	for jx = 1:length(xnames)
+		plotj = plotj+1;
+		subplot(length(dpnames),length(xnames),plotj);
+		hist(ovec{jp,jx});
+		qua = quantile(ovec{jp,jx},[0.05 0.5 0.95]);
+		set(gca,'Xtick',qua);
+		xlabel(sprintf('%s to offset %3.3g \\times %s',xnames{jx},dpfcs(jp),dpnames{jp}));
+	end
+end
+
+%% oh and report the adccfactors
+
+figure
+plotj = 0;
+for jp = 1:length(dpnames)
+	for jx = 1:1
+		plotj = plotj+1;
+		subplot(length(dpnames),1,plotj);
+		hist(avec{jp,jx});
+		qua = quantile(avec{jp,jx},[0.05 0.5 0.95]);
+		set(gca,'Xtick',qua);
+		xlabel(sprintf('fc ADCC from %s \\leftarrow %3.3g \\times %s',dpnames{jp},dpfcs(jp),dpnames{jp}));
+	end
+end
+
