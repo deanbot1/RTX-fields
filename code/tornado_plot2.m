@@ -9,7 +9,7 @@ varname = 'E4_F158onSUDHL4' ; % which experiment to center the sensitivity analy
 isnp1 = strfind(varname,'_'); isnp2 = strfind(varname,'on'); % this code won't work if there's something after the cell line name in varname!!!!
 SNPvar = varname(isnp1+1:isnp2-1);
 CellLine = varname(isnp2+2:end);
-Rconc = 100; % RTX conc in uM
+Rconc = 10; % RTX conc in uM
 tend = 4; % hours of ADCC assay
 titlstr = sprintf('%s SNP on %s cells:%d\\muM RTX @ %dh',SNPvar,CellLine,Rconc,tend);
 
@@ -40,14 +40,14 @@ if exist('p_over')
 end
 
 %% test the main function
-xname = 'gamma';
+xname = 'RTX';
 pbest.RTX = Rconc;
-dp = struct('CD20',0.01); % for example, dp = struct('CD20',0.01) sets up the question, how much fold increase in 'CD16' is needed to offset 2 logs drop in CD20?
+dp = struct('CD20',0.1); % for example, dp = struct('CD20',0.01) sets up the question, how much fold increase in 'CD16' is needed to offset 2 logs drop in CD20?
 %dx = how_much_dx_to_offset_dp(pbest,dp,xname,@adcx_wrapper,Rconc,[0:.1:tend]);
-[dx,do] = how_much_dx_to_offset_dp(pbest,dp,xname,@handiwrap,[]);
+[dx,do] = how_much_dx_to_offset_dp(pbest,dp,xname,[],@handiwrap,[]);
 
 %% specify the objective function on which to do sensitivity analysis
-ofun = @(pstruct)how_much_dx_to_offset_dp(pstruct,dp,xname,@handiwrap,[]) ; % set up anonymous Output function to run analysis on
+ofun = @(pstruct)how_much_dx_to_offset_dp(pstruct,dp,xname,[],@handiwrap,[]) ; % set up anonymous Output function to run analysis on
 ppname = fieldnames(dp); ppname = ppname{1}; % this breaks, or is wrong, if there is more than one parameter listed in dp
 xlab = sprintf('%s f.c. to offset %3.3g\\times%s \\rightarrow %3.3g\\timesADCC',xname,dp.(ppname),ppname,do);
 
