@@ -17,5 +17,5 @@ for j = 1:Ne
 
 end
 
-B = bweight*sum(((p(ii)-pvec0(ii))./cvec(ii)).^2);
+B = bweight*sum(((p(ii)-pvec0(ii))./cvec(ii)).^2); % +bweight*profiled parameter stuff
 ofun = vertcat(funvec, B);
