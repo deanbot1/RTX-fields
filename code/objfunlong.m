@@ -13,9 +13,19 @@ for j = 1:Ne
 		pstruct.(tname) = pfunc(pbig);
 	end
 	Ypred = expt(j).model(pstruct,expt(j).xval);
-	funvec = vertcat(funvec, errfunlong(Ypred,expt(j).obs));
+	if isfield(expt,'err')  % if measurement error vector exists, use it! That means errfunlong had better know what to do with it!
+		funvec = vertcat(funvec,errfunlong(Ypred,expt(j).obs,expt(j).err));
+	else % backwards compatibility
+		funvec = vertcat(funvec, errfunlong(Ypred,expt(j).obs));
+	end
 
 end
 
-B = bweight*sum(((p(ii)-pvec0(ii))./cvec(ii)).^2); % +bweight*profiled parameter stuff
+%B = bweight*sum(((p(ii)-pvec0(ii))./cvec(ii)).^2); bayes penalty, scalar
+if size(cvec,2) == 1
+	B = bweight*(p(ii)-pvec0(ii))./cvec(ii); % bayes penalty, vector
+else  % cvec is a COVARIANCE matrix not a STDEV vector
+	B = bweight*chol(inv(cvec(ii,ii)))*(p(ii)-pvec0(ii));
+end
+	
 ofun = vertcat(funvec, B);
