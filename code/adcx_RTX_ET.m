@@ -2,11 +2,11 @@ function p_adcc = adcx_RTX_ET(p,RTX_ET,tspan)
 % calls adcx repeatedly for each concentration in RTX_ET(:,1) and paired
 % EtoT ratio in RTX_ET(:,2)
 % and returns % ADCC
-% vector. It's hard-wired to simulate for 3 hours unless tspan is passed
-% 3 hours is what Akito Nakamura (Takeda) reported using
+% vector. It's hard-wired to simulate for 4 hours unless tspan is passed
+% 4 hours is what Herter reported using
 
 if nargin < 3
-	tspan = [0:.1:3];
+	tspan = [0:.1:4];
 end
 
 R_conc = 53.7496/7750 * RTX_ET(:,1); % convert ug/ml to M? nM/L?
