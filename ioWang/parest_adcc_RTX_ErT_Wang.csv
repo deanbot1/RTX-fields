@@ -1,4 +1,4 @@
-name,xform,cv,default,E1_V158onZ138,E2_V158onSUDHL4,E3_F158onZ138,E4_F158onSUDHL4,E5_V158onZ138HighConc,Wang_8,Description,Dimensions,Value in Kd_data,units,Ref,,
+name,xform,cv,default,E1_V158onZ138,E2_V158onSUDHL4,E3_F158onZ138,E4_F158onSUDHL4,E5_V158onZ138HighConc,E6_F158onRaji,Description,Dimensions,Value in Kd_data,units,Ref,,
 T0,log,0,1,,,,,,,initial number of target cells,N,,,,,
 E0toT0,log,0,25,,,,,,,effector:target ratio,n/a,,,,,
 Estar0,log,0,0,,,,,,,initial number of depleted effector cells,N,,,,,

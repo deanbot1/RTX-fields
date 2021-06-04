@@ -4,7 +4,7 @@ function [Tpar,Texp] = read_par_expt(parameter_filename)
 % Tpar, the parameter settings table
 % Texp, the experimental settings table
 
-Tbig = readtable(parameter_filename);
+Tbig = readtable(parameter_filename,'Format','auto');
 
 ires = find(strcmp(Tbig.name,'RESERVED'));
 Tpar = Tbig(1:ires-1,:);

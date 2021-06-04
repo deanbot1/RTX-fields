@@ -18,13 +18,13 @@ bweight = 1; % how much to weight bayesian penalty relative to chi squared error
 [Tpar,Texp] = read_par_expt(parameter_filename);
 [expt,pinit,pxform,cvs] = parse_par_expt(Tpar,Texp);
 
-%% plot goodness of fit of initial guesses in pinit
-
-% figure('Position',get(0,'ScreenSize'))
-figure
-rtxspan = 10.^[-2:0.25:6]';
-plot_expt_grid(expt,pinit,1,rtxspan,'Xscale','log','Ylim',[-10 100],'Xtick',10.^[-2:2:6]);
-print(sprintf('../ioWang/%s_init_fit.png',mname),'-dpng');
+% %% plot goodness of fit of initial guesses in pinit
+% 
+% % figure('Position',get(0,'ScreenSize'))
+% figure
+% rtxspan = 10.^[-2:0.25:6]';
+% plot_expt_grid(expt,pinit,1,rtxspan,'Xscale','log','Ylim',[-10 100],'Xtick',10.^[-2:2:6]);
+% print(sprintf('../ioWang/%s_init_fit.png',mname),'-dpng');
 
 	
 %% ok now setup parameter estimation problem and run it
@@ -84,6 +84,7 @@ grid on;
 print(sprintf('../ioWang/%s_final_params.png',mname),'-dpng');
 
 
+
 %% local plot function
 
 function localplotfun(expt,pinit)
@@ -129,5 +130,6 @@ end
 end
 
 end
+
 
 
