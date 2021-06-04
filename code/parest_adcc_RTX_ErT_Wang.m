@@ -84,4 +84,50 @@ grid on;
 print(sprintf('../ioWang/%s_final_params.png',mname),'-dpng');
 
 
+%% local plot function
+
+function localplotfun(expt,pinit)
+
+figure;
+subplot2d = @(nrow,ncol,rowi,colj)subplot(nrow,ncol,ncol*(rowi-1)+mod(colj-1,ncol)+1); % 2d subplot
+
+Ne = length(expt);
+for j = 1:Ne
+	ttnames = fieldnames(expt(j).pmap);
+			for kk = 1:length(ttnames)
+				tname = ttnames{kk};
+				pfunc = expt(j).pmap.(tname);
+				pstruct.(tname) = pfunc(pinit);
+			end
+			
+
+for k = 1:length(expt(j).xhead)
+	x.(expt(j).xhead{k})=k;
+end
+
+	Uk = unique(expt(j).xval(:,x.EtoT));	Nk = length(Uk);
+	for k = 1:Nk
+		subplot2d(Nk,Ne,k,j);
+		igood = find(expt(j).xval(:,x.EtoT)==Uk(k));
+		Ui = unique(expt(j).xval(igood,x.RTXuM)); Ni = length(Ui);
+		colors = 'rbmgck';
+		for i = 1:Ni
+			igreat = intersect(igood,find(expt(j).xval(:,x.RTXuM)==Ui(i)));
+			h(i)=errorbar(expt(j).xval(igreat,x.TAK981uM),expt(j).obs(igreat),expt(j).err(igreat),'o','Color',colors(i)); hold on;
+			leg{i} = sprintf('RTX=%3.3g',Ui(i));
+			TAK981concs = 10.^[-2:.1:0]';
+			xsim = [TAK981concs,Uk(k)*ones(size(TAK981concs)),Ui(i)*ones(size(TAK981concs))];
+			ysim = expt(j).model(pstruct,xsim);
+			plot(xsim(:,x.TAK981uM),ysim,'-','LineWidth',2,'Color',colors(i));
+		end
+		title(sprintf('E:T = %3.3g',Uk(k)));
+		set(gca,'Ylim',[0 100]);
+		set(gca,'Xscale','log');
+		grid on
+	end
+	xlabel('[TAK-981]');
+end
+
+end
+
 
