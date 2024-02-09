@@ -32,11 +32,25 @@ for j = 1:Nexp
 	expt(j).name = ename;
 	deffun = @(rname)ifelseval(isempty(Texp{rname,ename}{1}),Texp{rname,'default'},Texp{rname,ename});
 	expt(j).Xname = deffun('XNAME');
+	if strcmp(expt(j).Xname(1),'{'), expt(j).Xname = eval(expt(j).Xname); end
 	expt(j).Ynames = {deffun('YNAME')};
 	datafile = fullfile(deffun('DATAPATH'),deffun('DATAFILE'));
 	dat = readtable(datafile);
-	expt(j).xval = dat.(deffun('XHEADER'));
-	expt(j).obs = dat.(deffun('YHEADER'));
+	df = deffun('XHEADER');
+	igood = strcmp(dat.(deffun('EXPTFLAG')),Texp{'EXPTVAL',ename});
+	if strcmp(df(1),'{') % then we have multiple X variables
+		xh = eval(df); % should be a cell array
+	else
+		xh = df;
+	end
+	expt(j).xhead = xh;
+	expt(j).xval = dat{igood,xh}; % extract chunk of goodness
+	expt(j).obs = dat{igood,deffun('YHEADER')};
+	if isfield(dat,deffun('YERROR'))  % new feature, if y errors are available, use them, else default to 1's (least squares)
+		expt(j).err = dat{igood,deffun('YERROR')};
+	else
+		expt(j).err = ones(size(expt(j).obs));
+	end
 	expt(j).model = str2func(deffun('MODEL'));
 	expt(j).weight = str2num(deffun('WEIGHT'));
 end

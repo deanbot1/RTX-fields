@@ -14,8 +14,12 @@
 	koff_RA = kRTX20off;
 	ooh = 1/h; 
 	
+	if R == 0
+		SStrimer=0;
+	else
 	% SStrimer expression is derived in derive_reactionss.m, line 53 or so
 	SStrimer = Atot + ((koff_RA + R*kon_RA).*(koff_RA*koff_FR - (Atot^2*R.^2*kon_RA^2*kon_FR^2*ooh^2 - 2*Atot*Ftot*R.^2*kon_RA^2*kon_FR^2*ooh^2 + 2*Atot*R.^3*kon_RA^2*kon_FR^2*ooh + 2*Atot*R.^2*koff_RA*kon_RA*kon_FR^2*ooh + 2*Atot*R.^2*koff_FR*kon_RA^2*kon_FR*ooh + 2*Atot*R*koff_RA*koff_FR*kon_RA*kon_FR*ooh + Ftot^2*R.^2*kon_RA^2*kon_FR^2*ooh^2 + 2*Ftot*R.^3*kon_RA^2*kon_FR^2*ooh + 2*Ftot*R.^2*koff_RA*kon_RA*kon_FR^2*ooh + 2*Ftot*R.^2*koff_FR*kon_RA^2*kon_FR*ooh + 2*Ftot*R*koff_RA*koff_FR*kon_RA*kon_FR*ooh + R.^4*kon_RA^2*kon_FR^2 + 2*R.^3*koff_RA*kon_RA*kon_FR^2 + 2*R.^3*koff_FR*kon_RA^2*kon_FR + R.^2*koff_RA^2*kon_FR^2 + 4*R.^2*koff_RA*koff_FR*kon_RA*kon_FR + R.^2*koff_FR^2*kon_RA^2 + 2*R*koff_RA^2*koff_FR*kon_FR + 2*R*koff_RA*koff_FR^2*kon_RA + koff_RA^2*koff_FR^2).^(1/2) + R*koff_RA*kon_FR + R*koff_FR*kon_RA + R.^2*kon_RA*kon_FR - Atot*R*kon_RA*kon_FR*ooh + Ftot*R*kon_RA*kon_FR*ooh))./(2*R*kon_RA.*(koff_RA*kon_FR*ooh + R*kon_RA*kon_FR*ooh));
+	end
 
 	
 	
